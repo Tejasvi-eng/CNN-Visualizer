@@ -921,7 +921,7 @@ resetForNewImage();
   document.getElementById('proc-status').style.display='block';
   const fd=new FormData();fd.append('image',file);
   try{
-    const res=await fetch('http://127.0.0.1:5000/predict',{method:'POST',body:fd});
+    const res=await fetch('https://cnn-visualizer-ffaj.onrender.com/predict',{method:'POST',body:fd});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const data=await res.json();
     if(data.error)throw new Error(data.error);
@@ -953,7 +953,7 @@ async function pingBackend(){
   try{
     // Use a lightweight HEAD-like request; Flask doesn't have /health so we just check if predict is reachable
     const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),2500);
-    const r=await fetch('http://127.0.0.1:5000/predict',{method:'POST',body:new FormData(),signal:ctrl.signal});
+    const r=await fetch('https://cnn-visualizer-ffaj.onrender.com/predict',{method:'POST',body:new FormData(),signal:ctrl.signal});
     clearTimeout(t);setBackend(true);
   }catch{setBackend(false);}
 }
@@ -1113,7 +1113,7 @@ if (fmapArea) fmapArea.innerHTML = '<span style="font-size:9px;color:var(--dim)"
                 const formData = new FormData();
                 formData.append("image", file);
 
-                const aiResponse = await fetch("http://127.0.0.1:5000/predict", {
+                const aiResponse = await fetch("https://cnn-visualizer-ffaj.onrender.com/predict", {
                     method: "POST",
                     body: formData
                 });
