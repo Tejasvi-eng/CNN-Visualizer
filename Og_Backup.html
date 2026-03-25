@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CNN.VISUALIZER — Deep Learning Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#020408;--bg2:#050d14;--panel:rgba(4,12,22,0.92);
+  --border:rgba(0,200,255,0.14);--brite:rgba(0,200,255,0.38);
+  --cyan:#00c8ff;--orange:#ff6a00;--gold:#ffd700;--green:#00ff88;
+  --purple:#a855f7;--pink:#ff2d78;--teal:#00e5c8;--red:#ff3355;
+  --text:#c8e8ff;--dim:rgba(200,232,255,0.45);
+  --gcyan:0 0 18px rgba(0,200,255,0.55),0 0 40px rgba(0,200,255,0.2);
+  --gorange:0 0 18px rgba(255,106,0,0.6),0 0 40px rgba(255,106,0,0.25);
+  --ggold:0 0 16px rgba(255,215,0,0.5);--ggreen:0 0 16px rgba(0,255,136,0.5);
+  --gpurple:0 0 16px rgba(168,85,247,0.5);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;height:100vh;overflow:hidden;user-select:none;}
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+body::before{content:'';position:fixed;inset:0;
+  background:linear-gradient(rgba(0,200,255,0.025) 1px,transparent 1px),
+             linear-gradient(90deg,rgba(0,200,255,0.025) 1px,transparent 1px);
+  background-size:44px 44px;pointer-events:none;z-index:1;}
+body::after{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);
+  pointer-events:none;z-index:1;}
+
+/* ── LAYOUT ── */
+#app{position:relative;z-index:2;display:grid;grid-template-rows:52px 1fr 106px;grid-template-columns:268px 1fr 298px;height:100vh;}
+
+/* ── HEADER ── */
+#header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:rgba(2,6,12,0.97);border-bottom:1px solid var(--border);backdrop-filter:blur(24px);}
+.logo{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;letter-spacing:4px;color:var(--cyan);text-shadow:var(--gcyan);display:flex;align-items:center;gap:10px;}
+.logo-dot{color:var(--orange);}
+.logo-sub{font-size:8.5px;letter-spacing:2.5px;color:var(--dim);font-weight:400;margin-left:4px;}
+.header-mid{display:flex;align-items:center;gap:14px;font-size:10px;color:var(--dim);}
+.prog-wrap{width:130px;height:3px;background:rgba(0,200,255,0.1);border-radius:2px;}
+.prog-fill{height:100%;background:var(--cyan);border-radius:2px;transition:width 0.5s;box-shadow:var(--gcyan);}
+.header-controls{display:flex;gap:8px;align-items:center;}
+.btn{font-family:'Orbitron',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:2px;padding:6px 14px;border-radius:3px;border:1px solid;cursor:pointer;transition:all 0.2s;background:transparent;}
+.btn-cyan{border-color:var(--cyan);color:var(--cyan);}
+.btn-cyan:hover{background:rgba(0,200,255,0.1);box-shadow:var(--gcyan);}
+.btn-orange{border-color:var(--orange);color:var(--orange);}
+.btn-orange:hover{background:rgba(255,106,0,0.1);box-shadow:var(--gorange);}
+.btn-green{border-color:var(--green);color:var(--green);}
+.btn-green:hover{background:rgba(0,255,136,0.1);box-shadow:var(--ggreen);}
+.speed-sel{font-family:'Orbitron',sans-serif;font-size:9px;background:rgba(0,200,255,0.04);border:1px solid var(--border);color:var(--cyan);padding:5px 9px;border-radius:3px;cursor:pointer;}
+.backend-badge{display:flex;align-items:center;gap:6px;font-size:8.5px;letter-spacing:1px;padding:4px 10px;border:1px solid var(--border);border-radius:3px;color:var(--dim);transition:all 0.3s;}
+.backend-dot{width:6px;height:6px;border-radius:50%;background:var(--dim);flex-shrink:0;transition:all 0.3s;}
+.backend-badge.live{border-color:rgba(0,255,136,0.35);color:var(--green);}
+.backend-badge.live .backend-dot{background:var(--green);box-shadow:var(--ggreen);animation:pulse 1.8s infinite;}
+.backend-badge.dead{border-color:rgba(255,51,85,0.35);color:var(--red);}
+.backend-badge.dead .backend-dot{background:var(--red);}
+
+/* ── LEFT PANEL ── */
+#left-panel{grid-row:2;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;backdrop-filter:blur(20px);}
+.panel-hdr{font-family:'Orbitron',sans-serif;font-size:8.5px;font-weight:700;letter-spacing:3px;color:var(--dim);padding:11px 14px 9px;border-bottom:1px solid var(--border);flex-shrink:0;}
+#layer-list{flex:1;overflow-y:auto;padding:6px 0;}
+#layer-list::-webkit-scrollbar{width:2px;}
+#layer-list::-webkit-scrollbar-thumb{background:var(--brite);border-radius:2px;}
+.layer-item{display:flex;align-items:center;gap:9px;padding:8px 13px;cursor:pointer;transition:all 0.18s;border-left:2px solid transparent;}
+.layer-item:hover{background:rgba(0,200,255,0.05);}
+.layer-item.active{background:rgba(0,200,255,0.09);border-left-color:var(--cyan);}
+.layer-item.passed{opacity:0.42;}
+.l-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.layer-item.active .l-dot{box-shadow:0 0 8px currentColor;}
+.l-info{flex:1;min-width:0;}
+.l-name{font-family:'Orbitron',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:1px;line-height:1.2;}
+.l-shape{font-size:8.5px;color:var(--dim);margin-top:2px;}
+.l-params{font-size:8px;color:var(--dim);}
+#journey-status{padding:6px 13px;font-size:8.5px;color:var(--teal);letter-spacing:0.5px;min-height:28px;line-height:1.4;border-top:1px solid var(--border);flex-shrink:0;}
+#image-section{padding:10px 13px;border-top:1px solid var(--border);flex-shrink:0;}
+#upload-zone{border:1px dashed var(--brite);border-radius:4px;padding:13px 10px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(0,200,255,0.02);}
+#upload-zone:hover{border-color:var(--cyan);background:rgba(0,200,255,0.06);}
+#upload-zone p{font-size:9.5px;color:var(--dim);margin-top:4px;}
+#upload-zone .icon{font-size:20px;}
+#file-input{display:none;}
+#preview-img{ 
+  display: none; 
+  width: 100%; 
+  height: auto; 
+  max-height: 180px; /* Prevents tall images from pushing your UI off-screen */
+  object-fit: contain; /* This is the magic word that stops the cropping */
+  margin-top: 10px; 
+  border: 1px solid var(--border); 
+  border-radius: 4px;
+  background: rgba(0,0,0,0.3); /* Adds a nice dark backdrop for transparent PNGs */
+}
+#proc-status{display:none;text-align:center;padding:5px 0;font-size:8.5px;color:var(--cyan);letter-spacing:1.5px;animation:blink 1s step-end infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* ── CENTER ── */
+#center-panel{grid-row:2;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,rgba(0,40,90,0.25) 0%,var(--bg) 70%);}
+#main-canvas{display:block;width:100%;height:100%;}
+#layer-label{position:absolute;top:14px;left:50%;transform:translateX(-50%);font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;letter-spacing:4px;pointer-events:none;transition:all 0.3s;text-shadow:var(--gcyan);}
+
+/* Feature-map drawer */
+#fmap-drawer{position:absolute;bottom:0;left:0;right:0;height:0;overflow:hidden;transition:height 0.45s cubic-bezier(0.4,0,0.2,1);background:rgba(2,8,18,0.94);border-top:1px solid var(--border);backdrop-filter:blur(12px);}
+#fmap-drawer.open{height:136px;}
+#fmap-inner{padding:9px 14px;display:flex;gap:10px;align-items:center;height:100%;overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--brite) transparent;}
+.fmap-section-lbl{font-family:'Orbitron',sans-serif;font-size:7.5px;letter-spacing:2px;color:var(--dim);writing-mode:vertical-lr;flex-shrink:0;margin-right:2px;}
+.fmap-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;}
+.fmap-canvas{width:80px;height:80px;border-radius:3px;border:1px solid var(--border);image-rendering:pixelated;cursor:crosshair;transition:transform 0.25s,border-color 0.2s,box-shadow 0.2s;}
+.fmap-canvas:hover{transform:scale(3.2);z-index:50;border-color:var(--gold);box-shadow:var(--ggold);}
+.fmap-lbl{font-size:7px;letter-spacing:1px;}
+
+/* Probabilities panel */
+#prob-panel{position:absolute;right:14px;bottom:0;width:230px;background:rgba(2,8,18,0.96);border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;padding:12px;transform:translateY(100%);transition:transform 0.45s cubic-bezier(0.4,0,0.2,1);}
+#prob-panel.open{transform:translateY(0);}
+.prob-hdr{font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:2.5px;color:var(--dim);margin-bottom:9px;}
+.prob-row{display:flex;align-items:center;gap:6px;margin:4px 0;}
+.prob-cls{font-size:8.5px;width:80px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;}
+.prob-track{flex:1;height:11px;background:rgba(0,255,136,0.07);border-radius:2px;overflow:hidden;}
+.prob-bar{height:100%;background:linear-gradient(90deg,var(--green),var(--teal));border-radius:2px;transition:width 0.9s cubic-bezier(0.4,0,0.2,1);}
+.prob-bar.top{background:linear-gradient(90deg,var(--gold),var(--green));}
+.prob-pct{font-size:8.5px;color:var(--green);width:36px;text-align:right;flex-shrink:0;}
+.prob-pct.top{color:var(--gold);}
+
+/* Explanation strip */
+#explain-box{position:absolute;left:14px;bottom:0;max-width:calc(100% - 260px);background:rgba(2,8,18,0.94);border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;padding:10px 14px;transform:translateY(100%);transition:transform 0.45s cubic-bezier(0.4,0,0.2,1);font-size:9.5px;color:var(--dim);line-height:1.5;}
+#explain-box.open{transform:translateY(0);}
+#explain-box strong{color:var(--teal);}
+
+/* ── RIGHT PANEL ── */
+#right-panel{grid-row:2;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;backdrop-filter:blur(20px);}
+#inspector{flex:1;overflow-y:auto;padding:13px 12px;}
+#inspector::-webkit-scrollbar{width:2px;}
+#inspector::-webkit-scrollbar-thumb{background:var(--brite);border-radius:2px;}
+.insp-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:20px;border:1px solid;font-family:'Orbitron',sans-serif;font-size:8.5px;font-weight:700;letter-spacing:2px;margin-bottom:13px;}
+.insp-sec{margin-bottom:13px;}
+.insp-lbl{font-family:'Orbitron',sans-serif;font-size:7.5px;letter-spacing:3px;color:var(--dim);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.insp-lbl::after{content:'';flex:1;height:1px;background:var(--border);}
+.insp-text{font-size:10.5px;line-height:1.7;color:var(--text);}
+.formula-box{background:rgba(0,200,255,0.04);border:1px solid var(--border);border-radius:4px;padding:9px 11px;font-size:10.5px;color:var(--cyan);line-height:1.8;}
+.formula-detail{font-size:8.5px;color:var(--dim);margin-top:4px;display:block;}
+.analogy-box{background:rgba(255,106,0,0.05);border:1px solid rgba(255,106,0,0.2);border-left:3px solid var(--orange);border-radius:4px;padding:9px 11px;font-size:10.5px;color:var(--text);line-height:1.7;}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:13px;}
+.stat-card{background:rgba(0,200,255,0.04);border:1px solid var(--border);border-radius:4px;padding:7px 9px;}
+.stat-v{font-size:12.5px;font-weight:600;}
+.stat-k{font-size:8px;color:var(--dim);margin-top:2px;letter-spacing:1px;}
+.bar-row{display:flex;align-items:center;gap:7px;margin:4px 0;}
+.bar-lbl{font-size:9px;width:58px;color:var(--dim);flex-shrink:0;}
+.bar-track{flex:1;height:5px;background:rgba(0,200,255,0.07);border-radius:3px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;transition:width 0.8s cubic-bezier(0.4,0,0.2,1);}
+.bar-pct{font-size:8.5px;color:var(--dim);width:26px;text-align:right;flex-shrink:0;}
+.interview-box{background:rgba(168,85,247,0.05);border:1px solid rgba(168,85,247,0.2);border-radius:4px;padding:9px 11px;font-size:9.5px;color:var(--text);line-height:1.65;}
+.tag{display:inline-block;background:rgba(168,85,247,0.18);color:var(--purple);font-family:'Orbitron',sans-serif;font-size:7px;letter-spacing:2px;padding:2px 6px;border-radius:2px;margin-bottom:5px;}
+.intuition-box{margin-top:12px;padding:9px 11px;background:rgba(0,200,255,0.03);border:1px solid var(--border);border-radius:4px;}
+.fmap-thumb-area{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+.fmap-thumb{width:38px;height:38px;border-radius:2px;image-rendering:pixelated;}
+
+/* ── TIMELINE ── */
+#timeline{grid-column:1/-1;grid-row:3;background:rgba(2,6,12,0.98);border-top:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;padding:0 18px;backdrop-filter:blur(20px);}
+.tl-track{display:flex;align-items:center;position:relative;margin-bottom:5px;}
+.tl-conn{flex:1;height:2px;background:rgba(0,200,255,0.1);transition:background 0.4s;}
+.tl-conn.passed{background:var(--cyan);}
+.tl-node{width:26px;height:26px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.25s;font-size:8px;font-weight:700;background:var(--bg);}
+.tl-node:hover,.tl-node.active{transform:scale(1.18);}
+.tl-node.active{box-shadow:0 0 14px currentColor;}
+.tl-labels{display:flex;justify-content:space-between;padding:0 13px;}
+.tl-lbl{font-size:7px;color:var(--dim);text-align:center;letter-spacing:0.5px;transition:color 0.3s;min-width:26px;}
+.tl-lbl.active{color:var(--cyan);}
+
+/* ── MODAL ── */
+#modal-overlay{position:fixed;inset:0;background:rgba(1,4,9,0.88);backdrop-filter:blur(12px);z-index:9999;display:flex;align-items:center;justify-content:center;transition:opacity 0.4s;}
+#modal-overlay.hidden{opacity:0;pointer-events:none;}
+#modal-box{background:rgba(4,14,26,0.98);border:1px solid var(--brite);box-shadow:var(--gcyan);border-radius:8px;padding:28px 30px;max-width:480px;width:90%;}
+#modal-box h2{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;letter-spacing:3px;color:var(--cyan);text-shadow:var(--gcyan);margin-bottom:8px;}
+#modal-box p{font-size:11.5px;color:var(--dim);line-height:1.6;margin-bottom:16px;}
+#modal-box h3{font-family:'Orbitron',sans-serif;font-size:9.5px;letter-spacing:2px;color:var(--orange);margin-bottom:9px;}
+#modal-box ul{font-size:11px;padding-left:18px;line-height:1.85;color:var(--text);margin-bottom:16px;}
+.modal-note{background:rgba(0,200,255,0.04);border-left:3px solid var(--cyan);padding:10px 13px;font-size:10px;color:var(--dim);line-height:1.5;margin-bottom:22px;}
+
+/* ── TOAST ── */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+.toast{position:fixed;top:64px;right:16px;z-index:9000;padding:9px 16px;border-radius:5px;font-size:10px;letter-spacing:1px;opacity:0;transition:opacity 0.3s;pointer-events:none;border:1px solid;font-family:'JetBrains Mono',monospace;}
+.toast.show{opacity:1;}
+.toast.ok{background:rgba(0,255,136,0.1);border-color:rgba(0,255,136,0.35);color:var(--green);}
+.toast.err{background:rgba(255,51,85,0.1);border-color:rgba(255,51,85,0.35);color:var(--red);}
+.toast.info{background:rgba(0,200,255,0.09);border-color:rgba(0,200,255,0.35);color:var(--cyan);}
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<!-- WELCOME MODAL -->
+<div id="modal-overlay">
+  <div id="modal-box">
+    <h2>CNN.VISUALIZER</h2>
+    <p>Explore <strong style="color:var(--cyan)">MobileNetV2</strong>, a real-world AI architecture, and see exactly how it processes images — layer by layer.</p>
+    <h3>HOW TO EXPLORE:</h3>
+    <ul>
+      <li><strong>Upload</strong> any image → hit <span style="color:var(--orange)">▶ PLAY</span> to animate the full forward pass</li>
+      <li><strong>Click any node</strong> on the bottom timeline to jump to that layer instantly</li>
+      <li><strong>Hover feature maps</strong> for 3× X-RAY zoom mode</li>
+      <li><strong>Read the right panel</strong> — formula, real-world analogy, and interview prep</li>
+    </ul>
+    <div class="modal-note"><strong>Tip:</strong> Run <code>python app.py</code> first for live MobileNetV2 predictions. The visualizer works standalone too — feature maps are simulated from your image.</div>
+    <button class="btn btn-cyan" id="btn-close-modal" style="width:100%;padding:11px;font-size:12px;letter-spacing:3px;">START EXPLORING →</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div id="app">
+
+  <!-- HEADER -->
+  <div id="header">
+    <div class="logo">CNN<span class="logo-dot">.</span>VISUALIZER<span class="logo-sub">MOBILENETV2 EXPLORER</span></div>
+    <div class="header-mid">
+      <span id="step-lbl">LAYER 1/9</span>
+      <div class="prog-wrap"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="backend-badge" id="backend-badge">
+        <div class="backend-dot" id="backend-dot"></div>
+        <span id="backend-lbl">CHECKING...</span>
+      </div>
+    </div>
+   <div class="header-controls">
+      <div style="display:flex; align-items:center; gap:6px; margin-right:10px;">
+        <span style="font-size:9px; font-family:'Orbitron', sans-serif; color:var(--text-dim); letter-spacing:1px;">SPEED</span>
+        <select class="speed-sel" id="speed-sel">
+          <option value="2000">0.5×</option>
+          <option value="1200" selected>1×</option>
+          <option value="600">2×</option>
+          <option value="300">4×</option>
+        </select>
+      </div>
+      
+      <button class="btn btn-cyan"   id="btn-prev">◀ PREV</button>
+      <button class="btn btn-orange" id="btn-play">▶ PLAY</button>
+      <button class="btn btn-cyan"   id="btn-next">NEXT ▶</button>
+      <button class="btn btn-green"  id="btn-reset">↺ RESET</button>
+    </div>
+  </div>
+
+  <!-- LEFT PANEL -->
+  <div id="left-panel">
+    <div class="panel-hdr">ARCHITECTURE LAYERS</div>
+    <div id="layer-list"></div>
+    <div id="journey-status">Waiting for input...</div>
+    <div id="image-section">
+      <div class="panel-hdr" style="padding:9px 0 7px;border:none;">INPUT IMAGE</div>
+      <div id="upload-zone" onclick="document.getElementById('file-input').click()">
+        <div class="icon">⬆</div>
+        <p>UPLOAD IMAGE</p>
+        <p style="font-size:8.5px;margin-top:2px;opacity:0.6;">JPG · PNG · WEBP · max 10MB</p>
+      </div>
+      <input type="file" id="file-input" accept="image/*">
+      <img id="preview-img" alt="preview">
+      <div id="proc-status">ANALYZING IMAGE...</div>
+    </div>
+  </div>
+
+  <!-- CENTER CANVAS -->
+  <div id="center-panel">
+    <canvas id="main-canvas"></canvas>
+    <div id="layer-label">SELECT A LAYER</div>
+    <div id="fmap-drawer"><div id="fmap-inner"><div class="fmap-section-lbl">FEATURE MAPS</div></div></div>
+    <div id="prob-panel"><div class="prob-hdr">CLASS PROBABILITIES — SOFTMAX OUTPUT</div><div id="prob-bars"></div></div>
+    <div id="explain-box"></div>
+  </div>
+
+  <!-- RIGHT INSPECTOR -->
+  <div id="right-panel">
+    <div class="panel-hdr">LAYER INSPECTOR</div>
+    <div id="inspector">
+      <p style="font-size:10px;color:var(--dim);line-height:1.7;margin-top:6px;">
+        Click any layer on the left or timeline below to inspect it.<br><br>
+        Upload an image to see <strong style="color:var(--teal)">real feature maps</strong> from MobileNetV2.
+      </p>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div id="timeline">
+    <div class="tl-track" id="tl-track"></div>
+    <div class="tl-labels" id="tl-labels"></div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════
+   LAYER DATA  (9 layers — MobileNetV2 walkthrough)
+════════════════════════════════════════════════ */
+const LAYERS = [
+  {
+    id:0,name:'INPUT',short:'IN',color:'#ff6a00',type:'input',
+    shape:'3×224×224',params:0,flops:0,memory:'588KB',
+    formula:'X ∈ ℝ^{3×224×224}',detail:'Pixels normalised to [-1, 1] via preprocess_input',
+    simple:'The raw image enters the network — resized to 224×224 with 3 RGB channels. Each pixel becomes a float32 value between -1 and 1.',
+    technical:'Input tensor shape: (1, 3, 224, 224). MobileNetV2 expects values in [-1,1] via tf.keras.applications.mobilenet_v2.preprocess_input which maps [0,255] → [-1,1].',
+    intuition:'The canvas before any painting begins.',
+    analogy:'<strong>Analogy:</strong> Handing a photograph to a detective — they see raw colours and shapes before interpreting anything meaningful.',
+    interview:'Always discuss input normalisation at interviews. Raw [0,255] values saturate gradients; [-1,1] or zero-mean-unit-variance normalisation keeps early-layer gradients healthy and training stable.',
+    paramPct:0,flopPct:0,memPct:5,
+    journey:'📥 Input: Receiving 224×224 RGB pixel data...',
+  },
+  {
+    id:1,name:'CONV 1',short:'C1',color:'#00c8ff',type:'conv',
+    shape:'32×112×112',params:864,flops:10838016,memory:'1.5MB',
+    formula:'y[i,j,k] = Σ W[u,v,c,k]·x[i+u,j+v,c] + b[k]',detail:'Kernel: 3×3 | Filters: 32 | Stride: 2 | Padding: 1',
+    simple:'32 small 3×3 filters slide across the image. Each filter learns to detect a different low-level pattern — vertical edges, horizontal gradients, colour blobs. Stride=2 halves the resolution.',
+    technical:'Standard Conv2D with stride=2 halves spatial dims from 224→112. 32 filters × 3 in-channels × 3×3 kernel = 864 parameters. Output: (1,32,112,112).',
+    intuition:'32 detectives, each looking for a different basic clue.',
+    analogy:'<strong>Analogy:</strong> Running 32 different Instagram filters simultaneously — each one highlighting a different visual feature of the same photo.',
+    interview:'Filters share weights across spatial positions (weight sharing). This gives translational equivariance and reduces params vs a fully-connected layer by orders of magnitude.',
+    paramPct:1,flopPct:18,memPct:22,
+    journey:'🔍 Conv1: Detecting basic edges and colour gradients...',
+  },
+  {
+    id:2,name:'RELU6',short:'R6',color:'#ff2d78',type:'relu',
+    shape:'32×112×112',params:0,flops:401408,memory:'1.5MB',
+    formula:'ReLU6(x) = min(max(0, x), 6)',detail:'Element-wise | No learnable params | In-place op',
+    simple:'Negative values become 0, values above 6 are capped at 6. This adds non-linearity and keeps activations bounded — important for low-precision (int8) inference on mobile devices.',
+    technical:'Element-wise thresholding. ReLU6 is preferred over standard ReLU in MobileNet because capping at 6 helps when quantising to fixed-point arithmetic.',
+    intuition:'The network decides which signals to pass forward — and silences the rest.',
+    analogy:'<strong>Analogy:</strong> Like a neuron in your brain — it either fires (positive signal) or stays silent. No "negative firing" allowed.',
+    interview:'Without non-linearities, stacking linear layers collapses into a single linear transformation. ReLU enables the network to learn arbitrary functions (universal approximation theorem).',
+    paramPct:0,flopPct:2,memPct:22,
+    journey:'🧠 ReLU6: Filtering out negative activations, capping at 6...',
+  },
+  {
+    id:3,name:'DEPTHWISE',short:'DW',color:'#00e5c8',type:'conv',
+    shape:'32×112×112',params:288,flops:3612672,memory:'1.5MB',
+    formula:'y[c,i,j] = x[c] ★ k[c]',detail:'Kernel: 3×3 | Groups: 32 (one filter per channel) | Stride: 1',
+    simple:'Instead of mixing all channels together, one 3×3 filter is applied independently to each channel. This isolates spatial patterns within each feature channel at a fraction of the compute cost.',
+    technical:'Depthwise Conv2D. Each of the 32 channels gets its own 3×3 filter (groups=input_channels). Params: 32×9=288. FLOPs ~8-9× lower than equivalent standard conv.',
+    intuition:'Looking at shapes without mixing colours yet.',
+    analogy:'<strong>Analogy:</strong> Examining a scene through red, green, and blue lenses one at a time rather than all at once.',
+    interview:'Depthwise Separable Convolution (DW + PW) is the core of MobileNet\'s efficiency. It factorises a standard conv into spatial filtering + channel mixing — saving 8-9× compute.',
+    paramPct:0,flopPct:5,memPct:22,
+    journey:'📐 Depthwise: Analysing spatial patterns per channel independently...',
+  },
+  {
+    id:4,name:'POINTWISE',short:'PW',color:'#00c8ff',type:'conv',
+    shape:'16×112×112',params:512,flops:6422528,memory:'784KB',
+    formula:'y = W · x  (1×1 Conv)',detail:'Kernel: 1×1 | Filters: 16 | Stride: 1 | No spatial mixing',
+    simple:'A 1×1 convolution acts as a channel mixer. It combines the per-channel spatial features from the depthwise step into 16 richer feature maps, reducing channel count (32→16).',
+    technical:'Pointwise Conv2D. 1×1 convolution performs a learned linear projection across channels without any spatial mixing. Used here to reduce channels 32→16.',
+    intuition:'Mixing the colour channels into richer combined concepts.',
+    analogy:'<strong>Analogy:</strong> Like a soundboard mixer combining individual instrument tracks into a final blended soundtrack.',
+    interview:'1×1 convolutions enable channel-wise dimensionality reduction (like a bottleneck). They are computationally cheap but powerful for cross-channel feature interaction.',
+    paramPct:1,flopPct:10,memPct:12,
+    journey:'🎨 Pointwise: Mixing channel features into 16 combined maps...',
+  },
+  {
+    id:5,name:'BOTTLENECK',short:'BN',color:'#ff6a00',type:'conv',
+    shape:'24×56×56',params:3432,flops:10755072,memory:'294KB',
+    formula:'Expand → Depthwise → Project',detail:'Expansion: 6× | Stride: 2 (halves spatial dims) | Residual if shapes match',
+    simple:'The core repeating block of MobileNetV2. It expands channels 6×, applies depthwise conv to extract spatial features, then projects back down. The "inverted residual" shortcut connects the thin ends.',
+    technical:'Inverted Residual Block. Linear bottleneck (no activation on projection layer) preserves information. Residual connection added when input/output shapes match.',
+    intuition:'Breathing in to look closely, then breathing out to compress and move on.',
+    analogy:'<strong>Analogy:</strong> Unpacking a suitcase to find one outfit, examining every item, then tightly repacking to save space.',
+    interview:'MobileNetV2 uses *inverted* residuals — connects thin layers, not thick ones (opposite of ResNet). Linear bottleneck projection avoids information loss that ReLU would cause.',
+    paramPct:4,flopPct:25,memPct:5,
+    journey:'🧩 Bottleneck: Building complex shapes (expand → filter → compress)...',
+  },
+  {
+    id:6,name:'GLOBAL POOL',short:'GP',color:'#a855f7',type:'pool',
+    shape:'1280',params:0,flops:1280,memory:'5KB',
+    formula:'y_c = (1/HW) · Σ_{i,j} x_{c,i,j}',detail:'Global Average Pooling | 7×7 spatial → 1×1 | No learnable params',
+    simple:'Averages the entire 7×7 spatial grid of each of the 1280 feature channels down to a single number. Completely destroys spatial information — we only care about "does this feature exist?"',
+    technical:'Global Average Pooling reduces (1,1280,7,7) → (1,1280). Far more robust to spatial translations than Flatten. Drastically reduces params entering the classifier head.',
+    intuition:'Summarising the whole image into 1280 concept-votes.',
+    analogy:'<strong>Analogy:</strong> Reading a 500-page book and summarising each chapter into a single excitement score from 1 to 10.',
+    interview:'GAP replaced Flatten+FC in many modern architectures. It acts as structural regularisation — the network learns feature detectors that are globally useful, not spatially dependent.',
+    paramPct:0,flopPct:0,memPct:1,
+    journey:'📦 Global Pool: Compressing 7×7 maps into 1280 concept scores...',
+  },
+  {
+    id:7,name:'FC / DENSE',short:'FC',color:'#ffd700',type:'fc',
+    shape:'1000',params:1281000,flops:2560000,memory:'4KB',
+    formula:'y = W · x + b',detail:'In: 1280 | Out: 1000 (ImageNet classes) | Linear (no activation)',
+    simple:'Connects every one of the 1280 feature scores to every one of the 1000 possible ImageNet classes. This is where the final "voting" happens — each feature influences every class score.',
+    technical:'Dense layer: 1280×1000 weight matrix + 1000 bias = 1,281,000 params. This is the largest single parameter block in MobileNetV2 despite being just one layer.',
+    intuition:'Every feature voting on every possible answer simultaneously.',
+    analogy:'<strong>Analogy:</strong> A jury of 1280 experts, each casting 1000 weighted votes on every possible verdict.',
+    interview:'The FC head contains ~94% of parameters in lightweight models like MobileNet. Swapping the imagenet head for a smaller one (transfer learning / fine-tuning) is standard practice for custom tasks.',
+    paramPct:94,flopPct:5,memPct:1,
+    journey:'⚖️ Dense: 1280 features voting across 1000 ImageNet classes...',
+  },
+  {
+    id:8,name:'SOFTMAX',short:'SM',color:'#00ff88',type:'softmax',
+    shape:'1000',params:0,flops:3000,memory:'4KB',
+    formula:'σ(z)_i = e^{z_i} / Σ_j e^{z_j}',detail:'Output: probability distribution | All values in (0,1) | Sum = 1.0',
+    simple:'Converts the 1000 raw scores (logits) into probabilities that sum to exactly 100%. The class with the highest probability is the model\'s final prediction.',
+    technical:'Numerically stable softmax. During training, log-softmax + NLLLoss (= cross-entropy) is used. At inference, raw softmax probabilities are returned by the model.',
+    intuition:'Turning raw confidence scores into a proper probability distribution.',
+    analogy:'<strong>Analogy:</strong> A panel of judges scoring dishes — Softmax converts raw scores into "% chance this dish wins."',
+    interview:'Softmax is differentiable everywhere. Temperature scaling (dividing logits by T before softmax) softens/sharpens the distribution — used in knowledge distillation and model calibration.',
+    paramPct:0,flopPct:0,memPct:1,
+    journey:'🏆 Softmax: Calculating final class probabilities — done!',
+  },
+];
+
+/* ════════════════════════════════════════════════
+   STARFIELD
+════════════════════════════════════════════════ */
+(function(){
+  const c=document.getElementById('stars'),ctx=c.getContext('2d');
+  function rsz(){c.width=innerWidth;c.height=innerHeight;}
+  rsz();window.addEventListener('resize',rsz);
+  const S=Array.from({length:190},()=>({x:Math.random(),y:Math.random(),r:Math.random()*1.2+0.15,a:Math.random(),da:(Math.random()-0.5)*0.003}));
+  (function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    S.forEach(s=>{s.a+=s.da;if(s.a<0.05||s.a>1)s.da*=-1;ctx.beginPath();ctx.arc(s.x*c.width,s.y*c.height,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(170,215,255,${Math.max(0.05,s.a)})`;ctx.fill();});
+    requestAnimationFrame(draw);
+  })();
+})();
+
+/* ════════════════════════════════════════════════
+   CANVAS
+════════════════════════════════════════════════ */
+const canvas=document.getElementById('main-canvas');
+const ctx=canvas.getContext('2d');
+
+function resizeCanvas(){const p=document.getElementById('center-panel');canvas.width=p.offsetWidth;canvas.height=p.offsetHeight;drawNetwork();}
+window.addEventListener('resize',resizeCanvas);
+
+/* ════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════ */
+let currentLayer=0,isPlaying=false,playTimer=null;
+let uploadedImg=null,particles=[],kernelAnim={active:false,progress:0,idx:0};
+
+/* ════════════════════════════════════════════════
+   LAYOUT
+════════════════════════════════════════════════ */
+function getLayout(){
+  const W=canvas.width,H=canvas.height,N=LAYERS.length;
+  const margin=54,spacing=(W-margin*2)/(N-1);
+  const baseY=H*0.52;
+  const typeH={input:88,conv:82,relu:48,pool:58,fc:72,softmax:58};
+  return LAYERS.map((l,i)=>{
+    const h=typeH[l.type]||62;
+    return {x:margin+i*spacing,cx:margin+i*spacing,cy:baseY,y:baseY-h/2,w:26,h,layer:l,i};
+  });
+}
+
+function hexA(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g},${b},${a})`;}
+
+/* ════════════════════════════════════════════════
+   DRAW 3D BOX
+════════════════════════════════════════════════ */
+function draw3DBox(lyt,active,passed){
+  const {x,y,w,h,layer}=lyt,col=layer.color,d=13,alpha=passed?0.38:1;
+  ctx.save();ctx.globalAlpha=alpha;
+  if(active){ctx.shadowBlur=28;ctx.shadowColor=col;}
+
+  // Top face
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+w,y);ctx.lineTo(x+w+d*0.65,y-d*0.45);ctx.lineTo(x+d*0.65,y-d*0.45);ctx.closePath();
+  ctx.fillStyle=hexA(col,active?0.28:0.1);ctx.fill();
+  ctx.strokeStyle=hexA(col,active?0.85:0.38);ctx.lineWidth=active?1.4:0.7;ctx.stroke();
+
+  // Front face fill + stroke
+  ctx.beginPath();ctx.rect(x,y,w,h);
+  ctx.fillStyle=hexA(col,active?0.18:0.07);ctx.fill();
+  ctx.strokeStyle=hexA(col,active?0.9:0.4);ctx.lineWidth=active?1.4:0.7;ctx.stroke();
+
+  // Scanlines
+  ctx.globalAlpha=alpha*(active?0.25:0.12);
+  for(let sy=y+5;sy<y+h-2;sy+=6){ctx.beginPath();ctx.moveTo(x+1,sy);ctx.lineTo(x+w-1,sy);ctx.strokeStyle=col;ctx.lineWidth=0.5;ctx.stroke();}
+
+  // Dot grid
+  ctx.globalAlpha=alpha*(active?0.7:0.22);
+  const cols=Math.floor(w/5),rows=Math.floor(h/7);
+  for(let ci=0;ci<cols;ci++)for(let ri=0;ri<rows;ri++){
+    const px=x+3+ci*((w-6)/Math.max(cols-1,1));
+    const py=y+4+ri*((h-8)/Math.max(rows-1,1));
+    ctx.beginPath();ctx.arc(px,py,0.9,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
+  }
+
+  // Right face
+  ctx.globalAlpha=alpha;
+  ctx.beginPath();ctx.moveTo(x+w,y);ctx.lineTo(x+w+d*0.65,y-d*0.45);ctx.lineTo(x+w+d*0.65,y+h-d*0.45);ctx.lineTo(x+w,y+h);ctx.closePath();
+  ctx.fillStyle=hexA(col,active?0.1:0.04);ctx.fill();
+  ctx.strokeStyle=hexA(col,active?0.7:0.3);ctx.lineWidth=active?1.4:0.7;ctx.stroke();
+
+  // Active pulsing ring
+  if(active){
+    const p=0.75+0.25*Math.sin(Date.now()*0.005);
+    ctx.globalAlpha=p;ctx.strokeStyle=col;ctx.lineWidth=2;ctx.shadowBlur=16;ctx.shadowColor=col;
+    ctx.strokeRect(x-3,y-3,w+6,h+6);
+  }
+  ctx.restore();
+}
+
+/* ════════════════════════════════════════════════
+   DRAW CONNECTIONS (bezier curves with gradient)
+════════════════════════════════════════════════ */
+function drawConnections(layout){
+  ctx.save();
+  for(let i=0;i<layout.length-1;i++){
+    const a=layout[i],b=layout[i+1];
+    const x1=a.x+a.w+13*0.65,y1=a.cy-6,x2=b.x-2,y2=b.cy-6,mx=(x1+x2)/2;
+    const done=i<currentLayer,active=i===currentLayer-1;
+    const grad=ctx.createLinearGradient(x1,y1,x2,y2);
+    if(active){grad.addColorStop(0,LAYERS[i].color);grad.addColorStop(1,LAYERS[i+1].color);}
+    else if(done){grad.addColorStop(0,'rgba(0,200,255,0.55)');grad.addColorStop(1,'rgba(0,200,255,0.3)');}
+    else{grad.addColorStop(0,'rgba(0,200,255,0.1)');grad.addColorStop(1,'rgba(0,200,255,0.06)');}
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.bezierCurveTo(mx,y1,mx,y2,x2,y2);
+    ctx.strokeStyle=grad;ctx.lineWidth=active?2:(done?1.2:0.6);
+    ctx.shadowBlur=active?8:0;ctx.shadowColor=LAYERS[i].color;
+    ctx.stroke();ctx.shadowBlur=0;
+  }
+  ctx.restore();
+}
+
+/* ════════════════════════════════════════════════
+   PARTICLES
+════════════════════════════════════════════════ */
+function spawnParticles(from,to,color){
+  for(let i=0;i<14;i++){
+    particles.push({x:from.x+from.w,y:from.cy,tx:to.x,ty:to.cy,t:0,spd:0.007+Math.random()*0.013,color,r:2+Math.random()*3,trail:[]});
+  }
+}
+function tickParticles(){
+  particles=particles.filter(p=>p.t<1);
+  particles.forEach(p=>{
+    p.trail.push({x:p.x,y:p.y});if(p.trail.length>9)p.trail.shift();
+    p.t=Math.min(1,p.t+p.spd);
+    const t=p.t,x0=p.trail[0]?.x??p.x,y0=p.trail[0]?.y??p.y;
+    p.x=p.tx*t+x0*(1-t);p.y=p.ty*t+y0*(1-t);
+  });
+}
+function drawParticles(){
+  ctx.save();
+  particles.forEach(p=>{
+    p.trail.forEach((pt,i)=>{ctx.beginPath();ctx.arc(pt.x,pt.y,p.r*(i/p.trail.length)*0.8,0,Math.PI*2);ctx.fillStyle=hexA(p.color,(i/p.trail.length)*0.35);ctx.fill();});
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.color;ctx.shadowBlur=10;ctx.shadowColor=p.color;ctx.fill();ctx.shadowBlur=0;
+  });
+  ctx.restore();
+}
+
+/* ════════════════════════════════════════════════
+   KERNEL SLIDE ANIMATION
+════════════════════════════════════════════════ */
+function startKernelAnim(idx){kernelAnim={active:true,progress:0,idx};}
+function drawKernelAnim(layout){
+  if(!kernelAnim.active)return;
+  kernelAnim.progress+=0.012;if(kernelAnim.progress>=1){kernelAnim.active=false;return;}
+  const l=layout[kernelAnim.idx];
+  const kx=l.x+2+kernelAnim.progress*(l.w-10);
+  const ky=l.y+4+Math.sin(kernelAnim.progress*Math.PI*4)*(l.h*0.28);
+  ctx.save();ctx.strokeStyle='#ffd700';ctx.lineWidth=1.5;ctx.shadowBlur=8;ctx.shadowColor='#ffd700';
+  ctx.strokeRect(kx,ky,8,8);ctx.fillStyle='rgba(255,215,0,0.12)';ctx.fillRect(kx,ky,8,8);
+  ctx.shadowBlur=0;ctx.restore();
+}
+
+/* ════════════════════════════════════════════════
+   MAIN DRAW LOOP
+════════════════════════════════════════════════ */
+function drawNetwork(){
+  if(!canvas.width)return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const layout=getLayout();
+  drawConnections(layout);
+  layout.forEach((l,i)=>draw3DBox(l,i===currentLayer,i<currentLayer));
+  // Short labels
+  const shorts=['IN','C1','R6','DW','PW','BN','GP','FC','SM'];
+  layout.forEach((l,i)=>{
+    ctx.save();ctx.globalAlpha=i===currentLayer?1:(i<currentLayer?0.5:0.28);
+    ctx.font='700 7.5px Orbitron';ctx.fillStyle=LAYERS[i].color;ctx.textAlign='center';
+    ctx.fillText(shorts[i]||LAYERS[i].short,l.cx+13,l.y+l.h+15);ctx.restore();
+  });
+  if(kernelAnim.active)drawKernelAnim(layout);
+  tickParticles();drawParticles();
+  requestAnimationFrame(drawNetwork);
+}
+
+/* ════════════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════════════ */
+function goToLayer(idx,animate=true){
+  if(idx<0||idx>=LAYERS.length)return;
+  currentLayer=idx;
+  const l=LAYERS[idx];
+  if(animate&&idx>0){const layout=getLayout();spawnParticles(layout[idx-1],layout[idx],l.color);}
+  if(['conv','pool'].includes(l.type))startKernelAnim(idx);
+  document.getElementById('journey-status').textContent=l.journey||'Processing...';
+  const lbl=document.getElementById('layer-label');
+  lbl.textContent=l.name;lbl.style.color=l.color;lbl.style.textShadow=`0 0 20px ${l.color}88`;
+  const pct=(idx/(LAYERS.length-1))*100;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('step-lbl').textContent=`LAYER ${idx+1}/${LAYERS.length}`;
+  updateLayerList();updateTimeline();updateInspector();updateCenterPanels();
+}
+
+/* ════════════════════════════════════════════════
+   LEFT LAYER LIST
+════════════════════════════════════════════════ */
+function buildLayerList(){
+  document.getElementById('layer-list').innerHTML=LAYERS.map((l,i)=>`
+    <div class="layer-item" id="li-${i}" onclick="stopPlay();goToLayer(${i})">
+      <div class="l-dot" style="background:${l.color}"></div>
+      <div class="l-info">
+        <div class="l-name" style="color:${l.color}">${l.name}</div>
+        <div class="l-shape">${l.shape}</div>
+        <div class="l-params">${l.params?l.params.toLocaleString()+' params':'no params'}</div>
+      </div>
+    </div>`).join('');
+}
+function updateLayerList(){
+  LAYERS.forEach((_,i)=>{
+    const el=document.getElementById(`li-${i}`);
+    if(!el)return;
+    el.classList.toggle('active',i===currentLayer);
+    el.classList.toggle('passed',i<currentLayer);
+  });
+  document.getElementById(`li-${currentLayer}`)?.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* ════════════════════════════════════════════════
+   TIMELINE
+════════════════════════════════════════════════ */
+function buildTimeline(){
+  const track=document.getElementById('tl-track'),labels=document.getElementById('tl-labels');
+  track.innerHTML='';labels.innerHTML='';
+  LAYERS.forEach((l,i)=>{
+    if(i>0){const c=document.createElement('div');c.className='tl-conn';c.id=`tc-${i}`;track.appendChild(c);}
+    const n=document.createElement('div');n.className='tl-node';n.id=`tn-${i}`;
+    n.textContent=l.short;n.style.borderColor=l.color;n.style.color=l.color;
+    n.title=l.name;n.onclick=()=>{stopPlay();goToLayer(i);};track.appendChild(n);
+    const lb=document.createElement('div');lb.className='tl-lbl';lb.id=`tl-${i}`;lb.textContent=l.short;labels.appendChild(lb);
+  });
+}
+function updateTimeline(){
+  LAYERS.forEach((l,i)=>{
+    const n=document.getElementById(`tn-${i}`),lb=document.getElementById(`tl-${i}`);
+    if(!n)return;
+    const act=i===currentLayer,pas=i<currentLayer;
+    n.classList.toggle('active',act);
+    n.style.background=act?l.color+'33':(pas?l.color+'18':'var(--bg)');
+    n.style.boxShadow=act?`0 0 14px ${l.color}`:(pas?`0 0 6px ${l.color}44`:'none');
+    lb?.classList.toggle('active',act);
+    if(i>0){const tc=document.getElementById(`tc-${i}`);if(tc)tc.className='tl-conn'+(i<=currentLayer?' passed':'');}
+  });
+}
+
+/* ════════════════════════════════════════════════
+   RIGHT INSPECTOR
+════════════════════════════════════════════════ */
+function updateInspector(){
+  const l=LAYERS[currentLayer],c=l.color;
+  document.getElementById('inspector').innerHTML=`
+    <div class="insp-badge" style="color:${c};border-color:${c}44;background:${c}11">
+      <div style="width:7px;height:7px;border-radius:50%;background:${c};box-shadow:0 0 7px ${c}"></div>
+      ${l.name} &mdash; ${l.type.toUpperCase()}
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-v" style="color:${c}">${l.shape}</div><div class="stat-k">OUTPUT SHAPE</div></div>
+      <div class="stat-card"><div class="stat-v" style="color:${c}">${l.params?l.params.toLocaleString():'—'}</div><div class="stat-k">PARAMETERS</div></div>
+      <div class="stat-card"><div class="stat-v" style="color:${c}">${l.memory}</div><div class="stat-k">MEMORY</div></div>
+      <div class="stat-card"><div class="stat-v" style="color:${c}">${l.flops?(l.flops/1000).toFixed(0)+'K':'—'}</div><div class="stat-k">FLOPs</div></div>
+    </div>
+
+    <div class="insp-sec">
+      <div class="insp-lbl">OPERATION</div>
+      <div class="formula-box">${l.formula}<span class="formula-detail">${l.detail}</span></div>
+    </div>
+
+    <div class="insp-sec">
+      <div class="insp-lbl">WHAT'S HAPPENING</div>
+      <div class="insp-text">${l.simple}</div>
+    </div>
+
+    <div class="insp-sec">
+      <div class="insp-lbl">RESOURCE USAGE</div>
+      <div class="bar-row"><span class="bar-lbl">Params</span><div class="bar-track"><div class="bar-fill" style="width:${l.paramPct}%;background:${c}"></div></div><span class="bar-pct">${l.paramPct}%</span></div>
+      <div class="bar-row"><span class="bar-lbl">FLOPs</span><div class="bar-track"><div class="bar-fill" style="width:${l.flopPct}%;background:var(--teal)"></div></div><span class="bar-pct">${l.flopPct}%</span></div>
+      <div class="bar-row"><span class="bar-lbl">Memory</span><div class="bar-track"><div class="bar-fill" style="width:${l.memPct}%;background:var(--purple)"></div></div><span class="bar-pct">${l.memPct}%</span></div>
+    </div>
+
+    <div class="insp-sec">
+      <div class="insp-lbl">REAL-WORLD ANALOGY</div>
+      <div class="analogy-box">${l.analogy}</div>
+    </div>
+
+    <div class="insp-sec">
+      <div class="insp-lbl">TECHNICAL DEPTH</div>
+      <div class="insp-text" style="font-size:10px;color:var(--dim)">${l.technical}</div>
+    </div>
+
+    <div class="insp-sec">
+      <div class="insp-lbl">INTERVIEW INSIGHT</div>
+      <div class="interview-box"><div class="tag">INTERVIEW PREP</div><div>${l.interview}</div></div>
+    </div>
+
+    <div class="intuition-box">
+      <div style="font-size:8px;color:var(--dim);font-family:Orbitron,sans-serif;letter-spacing:2px;margin-bottom:4px">ONE-LINE INTUITION</div>
+      <div style="font-size:11.5px;color:${c};font-style:italic">"${l.intuition}"</div>
+    </div>
+
+    ${uploadedImg&&['conv','relu','pool'].includes(l.type)?`
+    <div class="insp-sec" style="margin-top:12px">
+      <div class="insp-lbl">FEATURE MAP PREVIEW</div>
+      <div class="fmap-thumb-area" id="fmap-thumb-area">
+        <span style="font-size:9px;color:var(--dim)">Rendering...</span>
+      </div>
+    </div>`:''}
+  `;
+  if(uploadedImg&&['conv','relu','pool'].includes(l.type)){
+    setTimeout(()=>populateInspectorThumbs(l),30);
+  }
+}
+
+function populateInspectorThumbs(l){
+  const area=document.getElementById('fmap-thumb-area');
+  if(!area)return;
+  area.innerHTML='';
+  generateFeatureMaps(currentLayer,uploadedImg).slice(0,4).forEach((mc,i)=>{
+    const th=document.createElement('canvas');th.width=mc.width;th.height=mc.height;
+    th.className='fmap-thumb';th.style.border=`1px solid ${l.color}44`;
+    th.getContext('2d').drawImage(mc,0,0);area.appendChild(th);
+  });
+}
+
+/* ════════════════════════════════════════════════
+   CENTER PANELS (feature maps + probabilities)
+════════════════════════════════════════════════ */
+function updateCenterPanels(){
+  const l=LAYERS[currentLayer];
+  const drawer=document.getElementById('fmap-drawer');
+  const inner=document.getElementById('fmap-inner');
+  const probPanel=document.getElementById('prob-panel');
+  const explainBox=document.getElementById('explain-box');
+  inner.innerHTML='<div class="fmap-section-lbl">FEATURE MAPS</div>';
+  probPanel.classList.remove('open');explainBox.classList.remove('open');drawer.classList.remove('open');
+
+  if(l.type==='softmax'){
+    probPanel.classList.add('open');explainBox.classList.add('open');
+    renderProbabilities();return;
+  }
+  if(!uploadedImg||!['conv','relu','pool','fc'].includes(l.type))return;
+
+  drawer.classList.add('open');
+  generateFeatureMaps(currentLayer,uploadedImg).forEach((mc,i)=>{
+    const wrap=document.createElement('div');wrap.className='fmap-wrap';
+    const cv=document.createElement('canvas');cv.width=mc.width;cv.height=mc.height;cv.className='fmap-canvas';
+    cv.getContext('2d').drawImage(mc,0,0);
+    const lbl=document.createElement('div');lbl.className='fmap-lbl';lbl.style.color=l.color;lbl.textContent=`F${i+1}`;
+    wrap.appendChild(cv);wrap.appendChild(lbl);inner.appendChild(wrap);
+  });
+}
+
+/* ════════════════════════════════════════════════
+   SIMULATED FEATURE MAPS (client-side pixel transforms)
+════════════════════════════════════════════════ */
+function generateFeatureMaps(layerIdx,imgEl){
+  const l=LAYERS[layerIdx];
+  const num=l.type==='fc'?4:8;
+  const sz=l.type==='pool'?28:56;
+  const FILTERS=[
+    (r,g,b)=>[Math.max(0,r-g)*1.5,Math.max(0,g-b)*1.5,0],
+    (r,g,b)=>[0,Math.max(0,g-r)*1.5,Math.max(0,b-g)*1.5],
+    (r,g,b)=>{const v=(r+g+b)/3;return [v*1.4,0,0];},
+    (r,g,b)=>{const v=(r+g+b)/3;return [0,v*1.4,0];},
+    (r,g,b)=>{const v=(r+g+b)/3;return [0,0,v*1.4];},
+    (r,g,b)=>[255-r,255-g,255-b],
+    (r,g,b)=>{const v=(r+g+b)/3;return [v>110?255:0,v>110?180:0,0];},
+    (r,g,b)=>{const v=Math.abs(r-g);return [v,v*0.5,255-v];},
+  ];
+  const isRelu=l.type==='relu';
+  return Array.from({length:num},(_,m)=>{
+    const oc=document.createElement('canvas');oc.width=sz;oc.height=sz;
+    const octx=oc.getContext('2d');octx.drawImage(imgEl,0,0,sz,sz);
+    const id=octx.getImageData(0,0,sz,sz);const d=id.data;
+    const fn=FILTERS[m%FILTERS.length];
+    for(let pi=0;pi<d.length;pi+=4){
+      let [nr,ng,nb]=fn(d[pi],d[pi+1],d[pi+2]);
+      if(isRelu){nr=Math.max(0,nr-55);ng=Math.max(0,ng-55);nb=Math.max(0,nb-55);}
+      d[pi]=Math.min(255,nr);d[pi+1]=Math.min(255,ng);d[pi+2]=Math.min(255,nb);
+    }
+    octx.putImageData(id,0,0);return oc;
+  });
+}
+
+/* ════════════════════════════════════════════════
+   PROBABILITY BARS  (uses real Flask predictions)
+════════════════════════════════════════════════ */
+function renderProbabilities(){
+  const bars=document.getElementById('prob-bars');
+  const explain=document.getElementById('explain-box');
+  bars.innerHTML='';
+
+  const preds=window.realPredictions;
+  if(!preds||!preds.length){
+    bars.innerHTML='<div style="font-size:9px;color:var(--dim);text-align:center;padding:8px">Upload an image to see real MobileNetV2 predictions</div>';
+    explain.innerHTML='<strong>No image uploaded yet.</strong> Upload any image to get live class predictions.';
+    return;
+  }
+
+  const max=Math.max(...preds.map(p=>p.probability));
+  preds.forEach((p,i)=>{
+    const top=p.probability===max&&p.probability>0;
+    const lbl=p.label.replace(/_/g,' ').toUpperCase();
+    const pct=(p.probability*100).toFixed(1);
+    const row=document.createElement('div');row.className='prob-row';
+    row.innerHTML=`
+      <div class="prob-cls" title="${lbl}">${lbl}</div>
+      <div class="prob-track"><div class="prob-bar${top?' top':''}" id="pb-${i}" style="width:0%"></div></div>
+      <div class="prob-pct${top?' top':''}">${pct}%</div>`;
+    bars.appendChild(row);
+    setTimeout(()=>{const el=document.getElementById(`pb-${i}`);if(el)el.style.width=pct+'%';},80+i*70);
+  });
+
+  if(window.realExplanation){
+    explain.innerHTML=window.realExplanation;
+    explain.classList.add('open');
+  }
+}
+
+/* ════════════════════════════════════════════════
+   IMAGE UPLOAD + FLASK /predict
+════════════════════════════════════════════════ */
+document.getElementById('file-input').addEventListener('change',async function(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  if(file.size>10*1024*1024){toast('File too large — max 10MB','err');return;}
+
+  // Show preview immediately (no backend needed for this)
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      uploadedImg=img;
+      document.getElementById('preview-img').src=ev.target.result;
+      document.getElementById('preview-img').style.display='block';
+      updateCenterPanels();updateInspector();
+      toast('Image loaded — feature maps are simulated client-side','info');
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+
+  // Also send to Flask backend for real predictions
+  document.getElementById('proc-status').style.display='block';
+  const fd=new FormData();fd.append('image',file);
+  try{
+    const res=await fetch('http://127.0.0.1:5000/predict',{method:'POST',body:fd});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
+    window.realPredictions=data.predictions;
+    window.realExplanation=`<strong>MobileNetV2:</strong> ${data.explanation}`;
+    document.getElementById('proc-status').style.display='none';
+    const top=data.predictions[0];
+    toast(`→ ${top.label.replace(/_/g,' ').toUpperCase()}  (${(top.probability*100).toFixed(1)}%)`,'ok');
+    setBackend(true);
+    if(LAYERS[currentLayer].type==='softmax')renderProbabilities();
+  }catch(err){
+    document.getElementById('proc-status').style.display='none';
+    const offline=err.message.includes('fetch')||err.message.includes('Failed')||err.message.includes('Network');
+    toast(offline?'Backend offline — run: python app.py':'Backend error: '+err.message,'err');
+    setBackend(false);
+  }
+  this.value=''; // allow re-uploading same file
+});
+
+/* ════════════════════════════════════════════════
+   BACKEND STATUS
+════════════════════════════════════════════════ */
+function setBackend(online){
+  const badge=document.getElementById('backend-badge');
+  badge.className='backend-badge '+(online?'live':'dead');
+  document.getElementById('backend-lbl').textContent=online?'BACKEND LIVE':'BACKEND OFFLINE';
+}
+async function pingBackend(){
+  try{
+    // Use a lightweight HEAD-like request; Flask doesn't have /health so we just check if predict is reachable
+    const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),2500);
+    const r=await fetch('http://127.0.0.1:5000/predict',{method:'POST',body:new FormData(),signal:ctrl.signal});
+    clearTimeout(t);setBackend(true);
+  }catch{setBackend(false);}
+}
+pingBackend();setInterval(pingBackend,15000);
+
+/* ════════════════════════════════════════════════
+   PLAYBACK CONTROLS
+════════════════════════════════════════════════ */
+function stopPlay(){
+  if(!isPlaying)return;
+  clearInterval(playTimer);isPlaying=false;
+  document.getElementById('btn-play').textContent='▶ PLAY';
+  document.getElementById('btn-play').className='btn btn-orange';
+}
+
+document.getElementById('btn-play').onclick=function(){
+  if(isPlaying){stopPlay();return;}
+  isPlaying=true;this.textContent='⏸ PAUSE';this.className='btn btn-cyan';
+  const spd=parseInt(document.getElementById('speed-sel').value);
+  playTimer=setInterval(()=>{
+    if(currentLayer>=LAYERS.length-1){stopPlay();return;}
+    goToLayer(currentLayer+1);
+  },spd);
+};
+document.getElementById('btn-next').onclick=()=>{stopPlay();if(currentLayer<LAYERS.length-1)goToLayer(currentLayer+1);};
+document.getElementById('btn-prev').onclick=()=>{stopPlay();if(currentLayer>0)goToLayer(currentLayer-1);};
+document.getElementById('btn-reset').onclick=()=>{
+  stopPlay();particles=[];kernelAnim.active=false;goToLayer(0,false);
+};
+document.getElementById('speed-sel').onchange=function(){
+  if(!isPlaying)return;
+  clearInterval(playTimer);
+  const spd=parseInt(this.value);
+  playTimer=setInterval(()=>{
+    if(currentLayer>=LAYERS.length-1){stopPlay();return;}
+    goToLayer(currentLayer+1);
+  },spd);
+};
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight')document.getElementById('btn-next').click();
+  if(e.key==='ArrowLeft')document.getElementById('btn-prev').click();
+  if(e.key===' '){e.preventDefault();document.getElementById('btn-play').click();}
+});
+
+/* ════════════════════════════════════════════════
+   TOAST
+════════════════════════════════════════════════ */
+function toast(msg,type='info'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className=`toast ${type} show`;
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3800);
+}
+
+/* ════════════════════════════════════════════════
+   MODAL
+════════════════════════════════════════════════ */
+document.getElementById('btn-close-modal').onclick=()=>document.getElementById('modal-overlay').classList.add('hidden');
+
+/* ════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════ */
+buildLayerList();
+buildTimeline();
+resizeCanvas();
+goToLayer(0,false);
+drawNetwork();
+</script>
+</body>
+</html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CNN Architecture Visualizer | Final Version</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;500&family=Space+Grotesk:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #020408;
+  --panel: rgba(5,18,30,0.85);
+  --border: rgba(0,200,255,0.15);
+  --border-bright: rgba(0,200,255,0.4);
+  --cyan: #00c8ff;
+  --orange: #ff6a00;
+  --gold: #ffd700;
+  --green: #00ff88;
+  --purple: #a855f7;
+  --text: #c8e8ff;
+  --text-dim: rgba(200,232,255,0.5);
+  --glow-cyan: 0 0 20px rgba(0,200,255,0.5);
+  --glow-gold: 0 0 20px rgba(255,215,0,0.5);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; height: 100vh; overflow: hidden; user-select: none; }
+
+#stars { position:fixed; inset:0; pointer-events:none; z-index:0; }
+body::before {
+  content:''; position:fixed; inset:0;
+  background: linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px; pointer-events:none; z-index:1;
+}
+
+#app { position:relative; z-index:2; display:grid; grid-template-rows: 52px 1fr 110px; grid-template-columns: 280px 1fr 300px; height:100vh; }
+
+#header { grid-column: 1/-1; display:flex; align-items:center; justify-content:space-between; padding: 0 20px; background: rgba(2,8,14,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(20px); }
+.logo { font-family:'Orbitron',sans-serif; font-size:14px; font-weight:900; letter-spacing:4px; color: var(--cyan); text-shadow: var(--glow-cyan); }
+.logo span { color: var(--orange); }
+
+.btn { font-family:'Orbitron',sans-serif; font-size:10px; font-weight:700; padding: 7px 16px; border-radius:3px; border: 1px solid; cursor:pointer; background: transparent; transition: 0.2s; color: var(--text); }
+.btn-cyan { border-color: var(--cyan); color: var(--cyan); }
+.btn-orange { border-color: var(--orange); color: var(--orange); }
+.btn-green { border-color: var(--green); color: var(--green); }
+
+#left-panel { background: var(--panel); border-right: 1px solid var(--border); display:flex; flex-direction:column; backdrop-filter: blur(20px); overflow: hidden; }
+#layer-list { flex:1; overflow-y:auto; padding:10px 0; }
+.layer-item { display:flex; align-items:center; gap:10px; padding:12px; cursor:pointer; border-left: 3px solid transparent; transition: 0.2s; }
+.layer-item.active { background: rgba(0,200,255,0.1); border-left-color: var(--cyan); }
+
+#image-section { padding:15px; border-top: 1px solid var(--border); }
+#upload-zone { border: 1px dashed var(--border-bright); padding:20px; text-align:center; cursor:pointer; background: rgba(0,200,255,0.02); }
+#preview-img { display:none; width:100%; margin-top:10px; border:1px solid var(--border); border-radius:4px; }
+
+#center-panel { position:relative; overflow:hidden; }
+#main-canvas { display:block; width:100%; height:100%; }
+#journey-text { position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%); background: var(--bg); border: 1px solid var(--cyan); padding: 6px 20px; border-radius: 20px; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--cyan); box-shadow: var(--glow-cyan); z-index: 10; }
+
+#feature-maps-container { position:absolute; bottom:0; left:0; right:0; height:0; overflow:hidden; transition: height 0.5s; background: rgba(2,8,14,0.9); border-top: 1px solid var(--border); }
+#feature-maps-container.open { height:150px; }
+#feature-maps-inner { padding:15px; display:flex; gap:12px; align-items:center; }
+.fmap-canvas { border:1px solid var(--border); transition: transform 0.3s; cursor: crosshair; }
+.fmap-canvas:hover { transform: scale(3); z-index: 100; border-color: var(--gold); box-shadow: var(--glow-gold); }
+
+#right-panel { background: var(--panel); border-left: 1px solid var(--border); display:flex; flex-direction:column; backdrop-filter: blur(20px); overflow-y:auto; padding: 15px; }
+.info-block { background: rgba(0, 200, 255, 0.05); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 12px; }
+.info-block h3 { font-family: 'Orbitron'; font-size: 10px; color: var(--cyan); margin-bottom: 6px; }
+
+#prob-viz { position:absolute; right:16px; bottom:140px; width:240px; background:var(--panel); border:1px solid var(--border-bright); padding:15px; border-radius:8px; display:none; }
+#prob-viz.show { display:block; }
+.prob-row { display:flex; align-items:center; gap:8px; margin:6px 0; }
+.prob-cls { font-size:9px; width:80px; color:var(--text-dim); text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.prob-bar-track { flex:1; height:10px; background:rgba(0,255,136,0.1); border-radius:2px; }
+.prob-bar-fill { height:100%; background:var(--green); transition:width 1s; }
+
+#timeline { grid-column:1/-1; background: rgba(2,8,14,0.97); border-top: 1px solid var(--border); display:flex; align-items:center; padding:0 30px; }
+.timeline-track { display:flex; width: 100%; align-items:center; justify-content: space-between; position:relative; }
+.tl-node { width:32px; height:32px; border-radius:50%; border:2px solid; display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--bg); font-size:10px; font-weight:bold; color:var(--text); transition: 0.3s; }
+.tl-node.active { transform:scale(1.25); box-shadow: 0 0 20px var(--cyan); border-color: var(--cyan); }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(2, 4, 8, 0.9); backdrop-filter: blur(10px); z-index: 9999; display: flex; align-items: center; justify-content: center; transition: 0.4s; }
+.modal-overlay.hidden { opacity: 0; pointer-events: none; }
+.modal-content { background: var(--panel); border: 1px solid var(--border-bright); padding: 35px; max-width: 550px; border-radius: 12px; }
+</style>
+</head>
+<body>
+
+<div id="welcome-modal" class="modal-overlay">
+  <div class="modal-content">
+    <h2 style="color: var(--cyan); font-family: 'Orbitron'; margin-bottom: 15px;">CNN.VISUALIZER PROTOCOL</h2>
+    <p style="margin-bottom: 20px; font-size: 14px; line-height: 1.6;">Witness how <strong>MobileNetV2</strong> deconstructs an image into mathematical patterns to identify animals.</p>
+    <div class="info-block">
+        <h3>MISSION OBJECTIVES</h3>
+        <ul style="font-size: 12px; padding-left: 20px; line-height: 1.8;">
+            <li>Upload an RGB image or select a <strong>Sample</strong>.</li>
+            <li>Press <strong>PLAY</strong> to watch the forward pass.</li>
+            <li>Hover over feature maps for <strong>X-RAY</strong> analysis.</li>
+        </ul>
+    </div>
+    <button id="btn-close-modal" class="btn btn-cyan" style="width: 100%; padding: 12px; font-size: 14px;">START EXPLORING</button>
+  </div>
+</div>
+
+<canvas id="stars"></canvas>
+
+<div id="app">
+  <div id="header">
+    <div class="logo">CNN<span>.</span>VISUALIZER</div>
+    <div class="header-controls">
+      <select class="speed-select" id="speed-select">
+        <option value="1500">0.5x</option>
+        <option value="800" selected>1.0x</option>
+        <option value="400">2.0x</option>
+      </select>
+      <button class="btn btn-cyan" id="btn-prev">PREV</button>
+      <button class="btn btn-orange" id="btn-play">▶ PLAY</button>
+      <button class="btn btn-cyan" id="btn-next">NEXT</button>
+      <button class="btn btn-green" id="btn-reset">↺ RESET</button>
+    </div>
+  </div>
+
+  <div id="left-panel">
+    <div class="panel-title" style="padding:15px; font-family:'Orbitron'; font-size:10px; border-bottom:1px solid var(--border);">ARCHITECTURE</div>
+    <div id="layer-list"></div>
+    <div id="image-section">
+      <div id="upload-zone" onclick="document.getElementById('file-input').click()">
+          <div style="font-size: 20px;">⬆</div>
+          <div style="font-size: 10px; font-weight: bold;">UPLOAD DATASET</div>
+      </div>
+      <input type="file" id="file-input" accept="image/*" style="display:none;">
+      
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button class="btn btn-cyan" style="flex:1; padding:6px; font-size:9px;" onclick="loadSample('dog')">DOG</button>
+        <button class="btn btn-orange" style="flex:1; padding:6px; font-size:9px;" onclick="loadSample('blur')">BLUR</button>
+      </div>
+
+      <img id="preview-img" alt="preview">
+      <div id="processing-status" style="display:none; text-align:center; font-size:10px; color:var(--cyan); margin-top:10px; font-family:'JetBrains Mono';">SYSTEM READY</div>
+    </div>
+    <p style="font-size:8px; color:var(--orange); text-align:center; padding:15px; opacity:0.6; font-family:'Orbitron';">"INTERPRETING PATTERNS, NOT MEANING."</p>
+  </div>
+
+  <div id="center-panel">
+    <canvas id="main-canvas"></canvas>
+    <div id="journey-text">Awaiting input signal...</div>
+    <div id="feature-maps-container">
+      <div id="feature-maps-inner">
+          <div style="font-family:'Orbitron'; font-size:9px; color:var(--text-dim); writing-mode:vertical-lr;">FEATURE MAPS</div>
+      </div>
+    </div>
+    <div id="prob-viz">
+      <div class="prob-title" style="font-family:'Orbitron'; font-size:9px; margin-bottom:10px;">CLASS PROBABILITIES</div>
+      <div id="prob-bars"></div>
+      <div class="prob-title" style="margin-top:15px; border-top:1px solid var(--border); padding-top:10px; font-family:'Orbitron'; font-size:9px;">AI REASONING</div>
+      <div id="model-explanation" style="font-size:10px; color:var(--text); line-height:1.5;">Waiting for image...</div>
+    </div>
+  </div>
+
+  <div id="right-panel">
+    <div class="panel-title" style="padding:15px; font-family:'Orbitron'; font-size:10px; border-bottom:1px solid var(--border);">LAYER INSPECTOR</div>
+    <div class="info-block">
+        <h3>WHY RGB?</h3>
+        <p style="font-size:9px; line-height:1.5; color:var(--text-dim);">3 color channels provide rich feature density for the AI detectors.</p>
+    </div>
+    <div id="inspector-content">
+        <div style="text-align:center; padding:40px; color:var(--text-dim); font-size:11px;">SELECT A NODE TO INSPECT</div>
+    </div>
+  </div>
+
+  <div id="timeline">
+    <div class="timeline-track" id="tl-track"></div>
+  </div>
+</div>
+
+<script>
+// --- DATA DEFINITIONS ---
+const LAYERS = [
+  { id:0, name:'INPUT', short:'IN', color:'#ff6a00', type:'input', shape:'224×224×3', simple:'Raw image enters as RGB grid.' },
+  { id:1, name:'CONV 1', short:'C1', color:'#00c8ff', type:'conv', shape:'112×112×32', simple:'Detects basic edges and colors.' },
+  { id:2, name:'RELU 1', short:'R1', color:'#ff2d78', type:'relu', shape:'112×112×32', simple:'Filters out weak signals.' },
+  { id:3, name:'DEPTHWISE', short:'DW', color:'#00e5c8', type:'conv', shape:'112×112×32', simple:'Independent channel patterns.' },
+  { id:4, name:'POINTWISE', short:'PW', color:'#00c8ff', type:'conv', shape:'112×112×16', simple:'Mixing spatial features.' },
+  { id:5, name:'BOTTLENECK', short:'BN', color:'#ff6a00', type:'conv', shape:'56×56×24', simple:'Building high-level shapes.' },
+  { id:6, name:'GLOBAL POOL', short:'GP', color:'#a855f7', type:'pool', shape:'1280', simple:'Summarizing all clues.' },
+  { id:7, name:'FC / DENSE', short:'FC', color:'#ffd700', type:'fc', shape:'1000', simple:'Final jury vote on class.' },
+  { id:8, name:'SOFTMAX', short:'SM', color:'#00ff88', type:'softmax', shape:'1000', simple:'Generating confidence %.' }
+];
+
+const journeyMap = ["📥 Input Data", "🔍 Edge Detection", "🧠 Signal Filter", "📐 Spatial Patterns", "🎨 Color Mixing", "🧩 Shape Building", "📦 Map Summary", "⚖️ Feature Voting", "🏆 Prediction Result"];
+
+let currentLayer = 0, isPlaying = false, playTimer = null, uploadedImageData = null, particles = [];
+
+// --- GRAPHICS ENGINE ---
+const canvas = document.getElementById('main-canvas'), ctx = canvas.getContext('2d');
+function resize() { canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight; }
+window.addEventListener('resize', resize);
+resize();
+
+function drawLayer3D(x, y, w, h, color, active, passed) {
+    ctx.save();
+    ctx.globalAlpha = passed ? 0.4 : 1;
+    ctx.fillStyle = active ? color : 'rgba(0,200,255,0.05)';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = active ? 2 : 0.5;
+    
+    // Front Face
+    ctx.beginPath();
+    ctx.rect(x - w/2, y - h/2, w, h);
+    ctx.fill(); ctx.stroke();
+    
+    // Top Edge (Isometric)
+    ctx.beginPath();
+    ctx.moveTo(x - w/2, y - h/2);
+    ctx.lineTo(x - w/2 + 10, y - h/2 - 10);
+    ctx.lineTo(x + w/2 + 10, y - h/2 - 10);
+    ctx.lineTo(x + w/2, y - h/2);
+    ctx.fill(); ctx.stroke();
+    ctx.restore();
+}
+
+function render() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const spacing = (canvas.width - 120) / (LAYERS.length - 1);
+    
+    LAYERS.forEach((l, i) => {
+        const x = 60 + i * spacing, y = canvas.height / 2;
+        if (i < LAYERS.length - 1) {
+            ctx.beginPath(); ctx.moveTo(x+15, y); ctx.lineTo(x+spacing-15, y);
+            ctx.strokeStyle = i < currentLayer ? LAYERS[i].color : 'rgba(255,255,255,0.1)';
+            ctx.stroke();
+        }
+        drawLayer3D(x, y, 30, 70, l.color, i === currentLayer, i < currentLayer);
+    });
+    requestAnimationFrame(render);
+}
+
+// --- LOGIC ---
+function goToLayer(idx) {
+    currentLayer = idx;
+    document.getElementById('journey-text').innerText = journeyMap[idx] || "Processing...";
+    
+    // Sidebar update
+    const list = document.getElementById('layer-list'); list.innerHTML = '';
+    LAYERS.forEach((l, i) => {
+        const div = document.createElement('div');
+        div.className = `layer-item ${i === currentLayer ? 'active' : ''}`;
+        div.innerHTML = `<div style="width:8px;height:8px;border-radius:50%;background:${l.color}"></div><div style="font-family:'Orbitron'; font-size:10px;">${l.name}</div>`;
+        div.onclick = () => goToLayer(i);
+        list.appendChild(div);
+    });
+
+    // Timeline update
+    const track = document.getElementById('tl-track'); track.innerHTML = '';
+    LAYERS.forEach((l, i) => {
+        const node = document.createElement('div');
+        node.className = `tl-node ${i === currentLayer ? 'active' : ''}`;
+        node.style.borderColor = l.color;
+        node.style.color = i === currentLayer ? '#fff' : l.color;
+        node.innerText = l.short;
+        node.onclick = () => goToLayer(i);
+        track.appendChild(node);
+    });
+
+    // Inspector update
+    const layer = LAYERS[idx];
+    document.getElementById('inspector-content').innerHTML = `
+        <div style="color:${layer.color}; font-weight:bold; font-size:12px; margin-bottom:10px;">${layer.name}</div>
+        <div class="info-block"><h3>OUTPUT SHAPE</h3>${layer.shape}</div>
+        <div class="info-block"><h3>INTUITION</h3>${layer.simple}</div>
+    `;
+
+    updateFeatureMaps();
+}
+
+function updateFeatureMaps() {
+    const container = document.getElementById('feature-maps-container'), inner = document.getElementById('feature-maps-inner');
+    inner.innerHTML = '<div style="font-family:\'Orbitron\'; font-size:9px; color:var(--text-dim); writing-mode:vertical-lr; margin-right:10px;">FEATURE MAPS</div>'; 
+    if (!uploadedImageData || currentLayer > 5) { container.classList.remove('open'); return; }
+    container.classList.add('open');
+    for(let i=0; i<8; i++) {
+        const c = document.createElement('canvas'); c.width=60; c.height=60; c.className='fmap-canvas';
+        const octx = c.getContext('2d');
+        octx.filter = `contrast(${1.2 + i*0.1}) brightness(${1.1}) hue-rotate(${i*25}deg)`;
+        octx.drawImage(uploadedImageData, 0,0,60,60);
+        inner.appendChild(c);
+    }
+}
+
+async function upload(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => { 
+        const img = new Image(); img.onload = () => { uploadedImageData = img; document.getElementById('preview-img').src = e.target.result; document.getElementById('preview-img').style.display='block'; updateFeatureMaps(); };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+
+    const fd = new FormData(); fd.append("image", file);
+    document.getElementById('processing-status').style.display = 'block';
+    try {
+        const res = await fetch("http://127.0.0.1:5000/predict", { method: "POST", body: fd });
+        const data = await res.json();
+        window.realPredictions = data.predictions;
+        document.getElementById('model-explanation').innerText = data.explanation;
+        if(LAYERS[currentLayer].type === 'softmax') showProbabilities();
+        document.getElementById('processing-status').innerText = "LINK ACTIVE";
+    } catch(err) { document.getElementById('model-explanation').innerText = "Backend error. Is app.py running?"; }
+}
+
+function showProbabilities() {
+    const viz = document.getElementById('prob-viz'), bars = document.getElementById('prob-bars');
+    viz.classList.add('show'); bars.innerHTML = '';
+    const preds = window.realPredictions || [];
+    preds.forEach(p => {
+        const row = document.createElement('div'); row.className = 'prob-row';
+        row.innerHTML = `<div class="prob-cls">${p.label.replace(/_/g, ' ')}</div><div class="prob-bar-track"><div class="prob-bar-fill" style="width:${p.probability*100}%"></div></div><div class="prob-val">${(p.probability*100).toFixed(1)}%</div>`;
+        bars.appendChild(row);
+    });
+}
+
+function loadSample(type) {
+    const urls = { 'dog': 'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=400', 'blur': 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&blur=10' };
+    const img = new Image(); img.crossOrigin = "Anonymous";
+    img.onload = () => { uploadedImageData = img; document.getElementById('preview-img').src = img.src; document.getElementById('preview-img').style.display='block'; updateFeatureMaps(); fetch(img.src).then(r => r.blob()).then(b => upload(new File([b], "sample.jpg", {type:"image/jpeg"}))); };
+    img.src = urls[type];
+}
+
+// --- INIT ---
+document.getElementById('file-input').onchange = e => upload(e.target.files[0]);
+document.getElementById('btn-play').onclick = function() {
+  if (isPlaying) { clearInterval(playTimer); isPlaying = false; this.innerText = "▶ PLAY"; }
+  else { isPlaying = true; this.innerText = "⏸ PAUSE"; playTimer = setInterval(() => { if (currentLayer < LAYERS.length - 1) goToLayer(currentLayer + 1); else { clearInterval(playTimer); isPlaying = false; this.innerText = "▶ PLAY"; } }, document.getElementById('speed-select').value); }
+};
+document.getElementById('btn-reset').onclick = () => { clearInterval(playTimer); isPlaying = false; goToLayer(0); };
+document.getElementById('btn-close-modal').onclick = () => document.getElementById('welcome-modal').classList.add('hidden');
+
+// Stars
+const sC = document.getElementById('stars'), sCtx = sC.getContext('2d');
+sC.width = window.innerWidth; sC.height = window.innerHeight;
+const stars = Array.from({length:150}, () => ({ x:Math.random(), y:Math.random(), r:Math.random()*1.5 }));
+function drawStars() { sCtx.clearRect(0,0,sC.width,sC.height); stars.forEach(s => { sCtx.beginPath(); sCtx.arc(s.x*sC.width, s.y*sC.height, s.r, 0, Math.PI*2); sCtx.fillStyle="#fff"; sCtx.fill(); }); requestAnimationFrame(drawStars); }
+
+drawStars(); goToLayer(0); render();
+</script>
+</body>
+</html>
