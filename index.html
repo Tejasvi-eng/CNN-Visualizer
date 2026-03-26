@@ -897,12 +897,15 @@ function renderProbabilities(){
 /* ════════════════════════════════════════════════
    IMAGE UPLOAD + FLASK /predict
 ════════════════════════════════════════════════ */
-document.getElementById('file-input').addEventListener('change',async function(e){
+document.getElementById('file-input').addEventListener('change', async function(e){
   const file=e.target.files[0];
   if(!file)return;
   if(file.size>10*1024*1024){toast('File too large — max 10MB','err');return;}
-resetForNewImage();
-  // Show preview immediately (no backend needed for this)
+
+  // 1. Reset UI
+  if (typeof resetForNewImage === 'function') resetForNewImage();
+
+  // 2. Show preview immediately
   const reader=new FileReader();
   reader.onload=ev=>{
     const img=new Image();
@@ -910,33 +913,38 @@ resetForNewImage();
       uploadedImg=img;
       document.getElementById('preview-img').src=ev.target.result;
       document.getElementById('preview-img').style.display='block';
-      updateCenterPanels();updateInspector();
+      if (typeof updateCenterPanels === 'function') updateCenterPanels();
+      if (typeof updateInspector === 'function') updateInspector();
       toast('Image loaded — feature maps are simulated client-side','info');
     };
     img.src=ev.target.result;
   };
   reader.readAsDataURL(file);
 
-  // Also send to Flask backend for real predictions
+  // 3. Send to Flask backend (USING THE NEW RETRY LOGIC)
   document.getElementById('proc-status').style.display='block';
   const fd=new FormData();fd.append('image',file);
   try{
-    const res=await fetch('https://cnn-visualizer-ffaj.onrender.com/predict',{method:'POST',body:fd});
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const data=await res.json();
+    // 👉 CLEAN FIX: Use the retry function instead of a single fragile fetch!
+    const data = await sendToFlaskWithRetry(fd);
+    
     if(data.error)throw new Error(data.error);
     window.realPredictions=data.predictions;
     window.realExplanation=`<strong>MobileNetV2:</strong> ${data.explanation}`;
+    
     document.getElementById('proc-status').style.display='none';
     const top=data.predictions[0];
     toast(`→ ${top.label.replace(/_/g,' ').toUpperCase()}  (${(top.probability*100).toFixed(1)}%)`,'ok');
-    setBackend(true);
-    if(LAYERS[currentLayer].type==='softmax')renderProbabilities();
+    if (typeof setBackend === 'function') setBackend(true);
+    
+    if(typeof LAYERS !== 'undefined' && LAYERS[currentLayer]?.type==='softmax'){
+        if (typeof renderProbabilities === 'function') renderProbabilities();
+    }
   }catch(err){
     document.getElementById('proc-status').style.display='none';
-    const offline=err.message.includes('fetch')||err.message.includes('Failed')||err.message.includes('Network');
-    toast(offline?'Backend offline — run: python app.py':'Backend error: '+err.message,'err');
-    setBackend(false);
+    const offline=err.message.includes('fetch')||err.message.includes('Failed')||err.message.includes('Network')||err.message.includes('too long');
+    toast(offline?'Backend is waking up, please try again.':'Backend error: '+err.message,'err');
+    if (typeof setBackend === 'function') setBackend(false);
   }
   this.value=''; // allow re-uploading same file
 });
