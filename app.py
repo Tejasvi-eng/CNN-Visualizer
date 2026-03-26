@@ -11,7 +11,8 @@ from tensorflow.keras.applications.mobilenet_v2 import (
 )
 
 app = Flask(__name__)
-CORS(app)
+# This allows your ffaj frontend to talk to your api backend!
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Load model once (IMPORTANT)
 model = MobileNetV2(weights="imagenet")
