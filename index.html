@@ -830,24 +830,32 @@ function generateFeatureMaps(layerIdx,imgEl){
 /* ════════════════════════════════════════════════
     PROBABILITY BARS  (uses real Flask predictions)
 ════════════════════════════════════════════════ */
-function renderProbabilities(){
-  const bars=document.getElementById('prob-bars');
-  const explain=document.getElementById('explain-box');
-  bars.innerHTML='';
+function renderProbabilities() {
+  const bars = document.getElementById('prob-bars');
+  const explain = document.getElementById('explain-box');
+  
+  if (!bars) return;
+  bars.innerHTML = '';
 
-  const preds=window.realPredictions;
-  if(!preds||!preds.length){
-    bars.innerHTML='<div style="font-size:9px;color:var(--dim);text-align:center;padding:8px">Upload an image to see real MobileNetV2 predictions</div>';
-    explain.innerHTML='<strong>No image uploaded yet.</strong> Upload any image to get live class predictions.';
+  const preds = window.realPredictions;
+
+  // 🔴 DEBUG TOOL: This will print exactly what the UI sees!
+  console.log("Softmax layer is trying to render. Data it sees:", preds);
+
+  // 1. SMART FALLBACK: If data isn't here yet, show a loading state instead of failing
+  if (!preds || !preds.length) {
+    bars.innerHTML = '<div style="font-size:11px;color:var(--dim);text-align:center;padding:15px;border:1px dashed var(--dim);border-radius:5px;">Awaiting AI predictions from backend...</div>';
+    if (explain) {
+        explain.innerHTML = '<strong>Standby:</strong> Model is processing the tensor. If Render is asleep, this may take 30-50 seconds.';
+        explain.classList.add('open');
+    }
     return;
   }
 
-  // --- NEW LOGIC: Calculate Frontend Warning Text ---
-  // Assuming 'preds' is sorted by Flask (highest probability first)
+  // 2. YOUR LOW CONFIDENCE LOGIC (Untouched, because it's awesome)
   const topPrediction = preds[0];
   let frontendWarningHTML = '';
 
-  // If the top guess is less than 30% confident, the AI is guessing.
   if (topPrediction.probability < 0.30) {
       frontendWarningHTML = `
           <div style="color:var(--orange); font-size:11px; margin-bottom:12px; padding:10px; border:1px solid var(--orange); border-radius:4px; background:rgba(255,106,0,0.05); font-family: 'Space Grotesk', sans-serif;">
@@ -856,42 +864,45 @@ function renderProbabilities(){
           </div>
       `;
   }
-  // ----------------------------------------------------
 
-  const max=Math.max(...preds.map(p=>p.probability));
-  preds.forEach((p,i)=>{
-    const top=p.probability===max&&p.probability>0;
-    const lbl=p.label.replace(/_/g,' ').toUpperCase();
-    const pct=(p.probability*100).toFixed(1);
-    const row=document.createElement('div');row.className='prob-row';
-    row.innerHTML=`
-      <div class="prob-cls" title="${lbl}">${lbl}</div>
-      <div class="prob-track"><div class="prob-bar${top?' top':''}" id="pb-${i}" style="width:0%"></div></div>
-      <div class="prob-pct${top?' top':''}">${pct}%</div>`;
-    bars.appendChild(row);
-    setTimeout(()=>{const el=document.getElementById(`pb-${i}`);if(el)el.style.width=pct+'%';},80+i*70);
+  // 3. RENDER THE BARS
+  // Using inline styles here just in case your CSS is missing '.prob-row' classes
+  let html = '';
+  preds.forEach((p, i) => {
+      const pct = (p.probability * 100).toFixed(1);
+      const w = Math.max(pct, 1); // Ensure even 0.1% gets a tiny sliver
+      const color = i === 0 ? 'var(--green)' : 'var(--cyan)'; 
+      const label = p.label.replace(/_/g, ' ').toUpperCase();
+      
+      html += `
+      <div style="display:flex;align-items:center;margin-bottom:8px;font-size:10px;font-family:'JetBrains Mono',monospace;">
+          <div style="width:110px;text-align:right;padding-right:10px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${label}">${label}</div>
+          <div style="flex-grow:1;background:rgba(255,255,255,0.05);height:10px;border-radius:5px;overflow:hidden;position:relative;">
+              <div style="width:${w}%;background:${color};height:100%;transition:width 0.8s cubic-bezier(0.4, 0, 0.2, 1);box-shadow:0 0 8px ${color}"></div>
+          </div>
+          <div style="width:45px;text-align:right;color:${color};font-weight:bold;">${pct}%</div>
+      </div>`;
   });
+  
+  bars.innerHTML = html;
 
-  // --- NEW LOGIC: Combine Frontend Warning & Backend Explanation ---
-  if(frontendWarningHTML || window.realExplanation){
+  // 4. COMBINE WARNING AND FLASK EXPLANATION
+  if (frontendWarningHTML || window.realExplanation) {
     let finalContentHTML = '';
-
-    // Add the orange frontend warning first if it exists
+    
     if (frontendWarningHTML) {
         finalContentHTML += frontendWarningHTML;
     }
-
-    // Append the backend explanation if it exists, adding a separator if needed
+    
     if (window.realExplanation) {
-        if (finalContentHTML) finalContentHTML += '<div style="margin-top:10px; border-top:1px solid var(--border);"></div><br>';
+        if (finalContentHTML) finalContentHTML += '<div style="margin-top:10px; border-top:1px solid var(--border); padding-top:10px;"></div>';
         finalContentHTML += window.realExplanation;
     }
 
     explain.innerHTML = finalContentHTML;
     explain.classList.add('open');
   } else {
-      // If neither exists, close the box
-      explain.classList.remove('open');
+    explain.classList.remove('open');
   }
 }
 /* ════════════════════════════════════════════════
@@ -1078,7 +1089,7 @@ async function sendToFlaskWithRetry(formData, retries = 3) {
     for (let i = 0; i < retries; i++) {
         try {
             // Using your actual Render URL!
-            const res = await fetch("https://cnn-visualizer-ffaj.onrender.com/predict", {
+            const res = await fetch("/predict", {
                 method: "POST",
                 body: formData
             });
@@ -1185,11 +1196,11 @@ async function sendToFlaskWithRetry(formData, retries = 3) {
     for (let i = 0; i < retries; i++) {
         try {
             // Replace this URL with your actual Render URL!
-            const res = await fetch("https://cnn-visualizer-api.onrender.com/predict", {
-                method: "POST",
-                body: formData
-            });
-            
+           // Inside sendToFlaskWithRetry:
+const res = await fetch("https://cnn-visualizer-api.onrender.com/predict", {
+    method: "POST",
+    body: formData
+});
             if (res.ok) {
                 return await res.json();
             }
