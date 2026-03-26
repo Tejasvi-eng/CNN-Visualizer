@@ -1085,37 +1085,38 @@ function resetForNewImage() {
 /* ─────────────────────────────────────────────────────────
    CLEAN CODE: Auto-Retry for Render's Cold Start
 ───────────────────────────────────────────────────────── */
-async function sendToFlaskWithRetry(formData, retries = 3) {
+/* ─────────────────────────────────────────────────────────
+   HEAVY-DUTY RETRY: Bypasses Render's Fake CORS Timeouts
+───────────────────────────────────────────────────────── */
+async function sendToFlaskWithRetry(formData, retries = 12) {
     for (let i = 0; i < retries; i++) {
         try {
-            // Using your actual Render URL!
-            const res = await fetch("/predict", {
+            // Make sure this is your exact API URL!
+            const res = await fetch("https://cnn-visualizer-api.onrender.com/predict", {
                 method: "POST",
                 body: formData
             });
             
             if (res.ok) {
+                console.log("✅ Success! Backend is awake and responded.");
                 return await res.json();
             }
             
-            // If Render is asleep, it throws a 502. We catch it and wait.
-            if (res.status === 502) {
-                console.log(`Render is waking up... Retrying in 3 seconds (Attempt ${i + 1}/${retries})`);
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                continue; // Loop back and try again!
-            }
-            
-            // If it's a different error, stop trying
-            throw new Error('HTTP ' + res.status);
+            console.log(`[Attempt ${i + 1}/${retries}] Server waking up... (Status: ${res.status})`);
             
         } catch (err) {
-            if (i === retries - 1) throw err; // Only throw error if we are out of retries
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            // THIS catches the "Fake CORS" error!
+            // When Render is asleep, the browser blocks the connection and throws a TypeError.
+            console.warn(`[Attempt ${i + 1}/${retries}] Caught Fake CORS/Sleep Error. Waiting 5s for Python to boot...`);
+        }
+        
+        // Wait 5 seconds before knocking on the door again
+        if (i < retries - 1) {
+            await new Promise(resolve => setTimeout(resolve, 5000));
         }
     }
-    throw new Error('Backend took too long to wake up. Please refresh and try again.');
+    throw new Error('Backend took too long to wake up. Please hard refresh the page and try again.');
 }
-
 // INJECTION: Bulletproof Sample Button Logic (CORS Safe)
 function loadSample(type) {
   // 👉 1. CALL THE RESET FUNCTION FIRST
