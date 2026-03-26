@@ -1063,10 +1063,45 @@ function resetForNewImage() {
     // 3. Snap the timeline back to Layer 0 (Input)
     if (typeof goToLayer === 'function') goToLayer(0, false);
 }
+/* ─────────────────────────────────────────────────────────
+   CLEAN CODE: Auto-Retry for Render's Cold Start
+───────────────────────────────────────────────────────── */
+async function sendToFlaskWithRetry(formData, retries = 3) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            // Using your actual Render URL!
+            const res = await fetch("https://cnn-visualizer-ffaj.onrender.com/predict", {
+                method: "POST",
+                body: formData
+            });
+            
+            if (res.ok) {
+                return await res.json();
+            }
+            
+            // If Render is asleep, it throws a 502. We catch it and wait.
+            if (res.status === 502) {
+                console.log(`Render is waking up... Retrying in 3 seconds (Attempt ${i + 1}/${retries})`);
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                continue; // Loop back and try again!
+            }
+            
+            // If it's a different error, stop trying
+            throw new Error('HTTP ' + res.status);
+            
+        } catch (err) {
+            if (i === retries - 1) throw err; // Only throw error if we are out of retries
+            await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+    }
+    throw new Error('Backend took too long to wake up. Please refresh and try again.');
+}
+
 // INJECTION: Bulletproof Sample Button Logic (CORS Safe)
 function loadSample(type) {
   // 👉 1. CALL THE RESET FUNCTION FIRST
-  resetForNewImage();
+  if (typeof resetForNewImage === 'function') resetForNewImage();
+  
   const samples = {
     'dog': 'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=400',
     'blur': 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&blur=10'
@@ -1082,13 +1117,12 @@ function loadSample(type) {
         const img = new Image();
         img.onload = async function() {
             // 2. Sync State Immediately
-         // Remove 'window.' so it updates the actual variables your engine uses
-uploadedImg = img;          
-uploadedImageData = img;  
+            uploadedImg = img;          
+            uploadedImageData = img;  
 
-// Force the feature map container to clear itself before redrawing
-const fmapArea = document.getElementById('fmap-thumb-area');
-if (fmapArea) fmapArea.innerHTML = '<span style="font-size:9px;color:var(--dim)">Rendering...</span>';  
+            // Force the feature map container to clear itself before redrawing
+            const fmapArea = document.getElementById('fmap-thumb-area');
+            if (fmapArea) fmapArea.innerHTML = '<span style="font-size:9px;color:var(--dim)">Rendering...</span>';  
 
             // 3. Update UI Preview
             const preview = document.getElementById('preview-img');
@@ -1107,18 +1141,14 @@ if (fmapArea) fmapArea.innerHTML = '<span style="font-size:9px;color:var(--dim)"
                 }
             }, 50); 
 
-            // 5. Backend Call (Using the blob we already downloaded)
+            // 5. Backend Call (USING THE NEW RETRY LOGIC)
             try {
                 const file = new File([blob], "sample.jpg", { type: "image/jpeg" });
                 const formData = new FormData();
                 formData.append("image", file);
 
-                const aiResponse = await fetch("https://cnn-visualizer-ffaj.onrender.com/predict", {
-                    method: "POST",
-                    body: formData
-                });
-                
-                const data = await aiResponse.json();
+                // 👉 THIS IS THE CLEAN FIX
+                const data = await sendToFlaskWithRetry(formData);
                 
                 window.realPredictions = data.predictions;
                 window.realExplanation = data.explanation;
@@ -1139,6 +1169,39 @@ if (fmapArea) fmapArea.innerHTML = '<span style="font-size:9px;color:var(--dim)"
         img.src = localUrl; // Feed the safe local URL to the image object
     })
     .catch(err => console.error("Failed to fetch sample image:", err));
+}
+/* ─────────────────────────────────────────────────────────
+   CLEAN CODE: Auto-Retry for Render's Cold Start
+───────────────────────────────────────────────────────── */
+async function sendToFlaskWithRetry(formData, retries = 3) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            // Replace this URL with your actual Render URL!
+            const res = await fetch("https://cnn-visualizer-api.onrender.com/predict", {
+                method: "POST",
+                body: formData
+            });
+            
+            if (res.ok) {
+                return await res.json();
+            }
+            
+            // If Render is asleep, it throws a 502. We catch it and wait.
+            if (res.status === 502) {
+                console.log(`Render is waking up... Retrying in 3 seconds (Attempt ${i + 1}/${retries})`);
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                continue; // Loop back and try again!
+            }
+            
+            // If it's a different error, stop trying
+            throw new Error('HTTP ' + res.status);
+            
+        } catch (err) {
+            if (i === retries - 1) throw err; // Only throw error if we are out of retries
+            await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+    }
+    throw new Error('Backend took too long to wake up. Please refresh and try again.');
 }
 </script>
 </body>
