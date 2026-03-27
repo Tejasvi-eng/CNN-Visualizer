@@ -3,35 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CNN.VISUALIZER — Deep Learning Explorer</title>
+<title>CNN.VISUALIZER — MobileNetV2 Explorer</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:#020408;--bg2:#050d14;--panel:rgba(4,12,22,0.92);
+:root{
+  --bg:#020408;--panel:rgba(4,12,22,0.92);
   --border:rgba(0,200,255,0.14);--brite:rgba(0,200,255,0.38);
   --cyan:#00c8ff;--orange:#ff6a00;--gold:#ffd700;--green:#00ff88;
-  --purple:#a855f7;--pink:#ff2d78;--teal:#00e5c8;--red:#ff3355;
+  --purple:#a855f7;--teal:#00e5c8;--red:#ff3355;
   --text:#c8e8ff;--dim:rgba(200,232,255,0.45);
   --gcyan:0 0 18px rgba(0,200,255,0.55),0 0 40px rgba(0,200,255,0.2);
   --gorange:0 0 18px rgba(255,106,0,0.6),0 0 40px rgba(255,106,0,0.25);
-  --ggold:0 0 16px rgba(255,215,0,0.5);--ggreen:0 0 16px rgba(0,255,136,0.5);
-  --gpurple:0 0 16px rgba(168,85,247,0.5);
+  --ggold:0 0 16px rgba(255,215,0,0.5);
+  --ggreen:0 0 16px rgba(0,255,136,0.5);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;height:100vh;overflow:hidden;user-select:none;}
 #stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
-body::before{content:'';position:fixed;inset:0;
-  background:linear-gradient(rgba(0,200,255,0.025) 1px,transparent 1px),
-             linear-gradient(90deg,rgba(0,200,255,0.025) 1px,transparent 1px);
-  background-size:44px 44px;pointer-events:none;z-index:1;}
-body::after{content:'';position:fixed;inset:0;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);
-  pointer-events:none;z-index:1;}
+body::before{content:'';position:fixed;inset:0;background:linear-gradient(rgba(0,200,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,0.025) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:1;}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);pointer-events:none;z-index:1;}
 
-/* ── LAYOUT ── */
 #app{position:relative;z-index:2;display:grid;grid-template-rows:52px 1fr 106px;grid-template-columns:268px 1fr 298px;height:100vh;}
 
-/* ── HEADER ── */
+/* HEADER */
 #header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:rgba(2,6,12,0.97);border-bottom:1px solid var(--border);backdrop-filter:blur(24px);}
 .logo{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;letter-spacing:4px;color:var(--cyan);text-shadow:var(--gcyan);display:flex;align-items:center;gap:10px;}
 .logo-dot{color:var(--orange);}
@@ -46,19 +40,20 @@ body::after{content:'';position:fixed;inset:0;
 .btn-orange{border-color:var(--orange);color:var(--orange);}
 .btn-orange:hover{background:rgba(255,106,0,0.1);box-shadow:var(--gorange);}
 .btn-green{border-color:var(--green);color:var(--green);}
-.btn-green:hover{background:rgba(0,255,136,0.1);box-shadow:var(--ggreen);}
+.btn-green:hover{background:rgba(0,255,136,0.1);}
 .speed-sel{font-family:'Orbitron',sans-serif;font-size:9px;background:rgba(0,200,255,0.04);border:1px solid var(--border);color:var(--cyan);padding:5px 9px;border-radius:3px;cursor:pointer;}
 .backend-badge{display:flex;align-items:center;gap:6px;font-size:8.5px;letter-spacing:1px;padding:4px 10px;border:1px solid var(--border);border-radius:3px;color:var(--dim);transition:all 0.3s;}
 .backend-dot{width:6px;height:6px;border-radius:50%;background:var(--dim);flex-shrink:0;transition:all 0.3s;}
 .backend-badge.live{border-color:rgba(0,255,136,0.35);color:var(--green);}
-.backend-badge.live .backend-dot{background:var(--green);box-shadow:var(--ggreen);animation:pulse 1.8s infinite;}
+.backend-badge.live .backend-dot{background:var(--green);box-shadow:var(--ggreen);animation:pulse-dot 1.8s infinite;}
 .backend-badge.dead{border-color:rgba(255,51,85,0.35);color:var(--red);}
 .backend-badge.dead .backend-dot{background:var(--red);}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.35}}
 
-/* ── LEFT PANEL ── */
+/* LEFT PANEL */
 #left-panel{grid-row:2;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;backdrop-filter:blur(20px);}
 .panel-hdr{font-family:'Orbitron',sans-serif;font-size:8.5px;font-weight:700;letter-spacing:3px;color:var(--dim);padding:11px 14px 9px;border-bottom:1px solid var(--border);flex-shrink:0;}
-#layer-list{flex:1;overflow-y:auto;padding:6px 0;}
+#layer-list{flex:1;overflow-y:auto;padding:6px 0;min-height:0;}
 #layer-list::-webkit-scrollbar{width:2px;}
 #layer-list::-webkit-scrollbar-thumb{background:var(--brite);border-radius:2px;}
 .layer-item{display:flex;align-items:center;gap:9px;padding:8px 13px;cursor:pointer;transition:all 0.18s;border-left:2px solid transparent;}
@@ -71,36 +66,28 @@ body::after{content:'';position:fixed;inset:0;
 .l-name{font-family:'Orbitron',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:1px;line-height:1.2;}
 .l-shape{font-size:8.5px;color:var(--dim);margin-top:2px;}
 .l-params{font-size:8px;color:var(--dim);}
-#journey-status{padding:6px 13px;font-size:8.5px;color:var(--teal);letter-spacing:0.5px;min-height:28px;line-height:1.4;border-top:1px solid var(--border);flex-shrink:0;}
 #image-section{padding:10px 13px;border-top:1px solid var(--border);flex-shrink:0;}
 #upload-zone{border:1px dashed var(--brite);border-radius:4px;padding:13px 10px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(0,200,255,0.02);}
 #upload-zone:hover{border-color:var(--cyan);background:rgba(0,200,255,0.06);}
 #upload-zone p{font-size:9.5px;color:var(--dim);margin-top:4px;}
-#upload-zone .icon{font-size:20px;}
 #file-input{display:none;}
-#preview-img{ 
-  display: none; 
-  width: 100%; 
-  height: auto; 
-  max-height: 180px; /* Prevents tall images from pushing your UI off-screen */
-  object-fit: contain; /* This is the magic word that stops the cropping */
-  margin-top: 10px; 
-  border: 1px solid var(--border); 
-  border-radius: 4px;
-  background: rgba(0,0,0,0.3); /* Adds a nice dark backdrop for transparent PNGs */
-}
-#proc-status{display:none;text-align:center;padding:5px 0;font-size:8.5px;color:var(--cyan);letter-spacing:1.5px;animation:blink 1s step-end infinite;}
+#preview-img{display:none;width:100%;height:auto;max-height:160px;object-fit:contain;margin-top:10px;border:1px solid var(--border);border-radius:4px;background:rgba(0,0,0,0.3);}
+#proc-status{display:none;text-align:center;padding:5px 0;font-size:8.5px;color:var(--cyan);letter-spacing:1.5px;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.blinking{animation:blink 1s step-end infinite;}
 
-/* ── CENTER ── */
+/* CENTER */
 #center-panel{grid-row:2;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,rgba(0,40,90,0.25) 0%,var(--bg) 70%);}
 #main-canvas{display:block;width:100%;height:100%;}
 #layer-label{position:absolute;top:14px;left:50%;transform:translateX(-50%);font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;letter-spacing:4px;pointer-events:none;transition:all 0.3s;text-shadow:var(--gcyan);}
+#journey-text{position:absolute;top:44px;left:50%;transform:translateX(-50%);background:rgba(2,6,12,0.88);border:1px solid rgba(0,200,255,0.3);padding:5px 20px;border-radius:20px;font-size:10px;color:var(--cyan);z-index:10;white-space:nowrap;pointer-events:none;box-shadow:0 0 12px rgba(0,200,255,0.2);}
 
 /* Feature-map drawer */
 #fmap-drawer{position:absolute;bottom:0;left:0;right:0;height:0;overflow:hidden;transition:height 0.45s cubic-bezier(0.4,0,0.2,1);background:rgba(2,8,18,0.94);border-top:1px solid var(--border);backdrop-filter:blur(12px);}
 #fmap-drawer.open{height:136px;}
-#fmap-inner{padding:9px 14px;display:flex;gap:10px;align-items:center;height:100%;overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--brite) transparent;}
+#fmap-inner{padding:9px 14px;display:flex;gap:10px;align-items:center;height:100%;overflow-x:auto;}
+#fmap-inner::-webkit-scrollbar{height:2px;}
+#fmap-inner::-webkit-scrollbar-thumb{background:var(--brite);}
 .fmap-section-lbl{font-family:'Orbitron',sans-serif;font-size:7.5px;letter-spacing:2px;color:var(--dim);writing-mode:vertical-lr;flex-shrink:0;margin-right:2px;}
 .fmap-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;}
 .fmap-canvas{width:80px;height:80px;border-radius:3px;border:1px solid var(--border);image-rendering:pixelated;cursor:crosshair;transition:transform 0.25s,border-color 0.2s,box-shadow 0.2s;}
@@ -108,23 +95,23 @@ body::after{content:'';position:fixed;inset:0;
 .fmap-lbl{font-size:7px;letter-spacing:1px;}
 
 /* Probabilities panel */
-#prob-panel{position:absolute;right:14px;bottom:0;width:230px;background:rgba(2,8,18,0.96);border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;padding:12px;transform:translateY(100%);transition:transform 0.45s cubic-bezier(0.4,0,0.2,1);}
+#prob-panel{position:absolute;right:14px;bottom:0;width:240px;background:rgba(2,8,18,0.96);border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;padding:12px;transform:translateY(100%);transition:transform 0.45s cubic-bezier(0.4,0,0.2,1);}
 #prob-panel.open{transform:translateY(0);}
 .prob-hdr{font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:2.5px;color:var(--dim);margin-bottom:9px;}
 .prob-row{display:flex;align-items:center;gap:6px;margin:4px 0;}
-.prob-cls{font-size:8.5px;width:80px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;}
+.prob-cls{font-size:8.5px;width:82px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;}
 .prob-track{flex:1;height:11px;background:rgba(0,255,136,0.07);border-radius:2px;overflow:hidden;}
 .prob-bar{height:100%;background:linear-gradient(90deg,var(--green),var(--teal));border-radius:2px;transition:width 0.9s cubic-bezier(0.4,0,0.2,1);}
 .prob-bar.top{background:linear-gradient(90deg,var(--gold),var(--green));}
 .prob-pct{font-size:8.5px;color:var(--green);width:36px;text-align:right;flex-shrink:0;}
 .prob-pct.top{color:var(--gold);}
 
-/* Explanation strip */
-#explain-box{position:absolute;left:14px;bottom:0;max-width:calc(100% - 260px);background:rgba(2,8,18,0.94);border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;padding:10px 14px;transform:translateY(100%);transition:transform 0.45s cubic-bezier(0.4,0,0.2,1);font-size:9.5px;color:var(--dim);line-height:1.5;}
+/* Explain strip */
+#explain-box{position:absolute;left:14px;bottom:0;max-width:calc(100% - 268px);background:rgba(2,8,18,0.94);border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;padding:10px 14px;transform:translateY(100%);transition:transform 0.45s cubic-bezier(0.4,0,0.2,1);font-size:9.5px;color:var(--dim);line-height:1.5;}
 #explain-box.open{transform:translateY(0);}
 #explain-box strong{color:var(--teal);}
 
-/* ── RIGHT PANEL ── */
+/* RIGHT PANEL */
 #right-panel{grid-row:2;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;backdrop-filter:blur(20px);}
 #inspector{flex:1;overflow-y:auto;padding:13px 12px;}
 #inspector::-webkit-scrollbar{width:2px;}
@@ -151,67 +138,67 @@ body::after{content:'';position:fixed;inset:0;
 .intuition-box{margin-top:12px;padding:9px 11px;background:rgba(0,200,255,0.03);border:1px solid var(--border);border-radius:4px;}
 .fmap-thumb-area{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
 .fmap-thumb{width:38px;height:38px;border-radius:2px;image-rendering:pixelated;}
+.hover-fade{opacity:0.38;transition:opacity 0.3s;cursor:default;}
+.hover-fade:hover{opacity:1;}
 
-/* ── TIMELINE ── */
+/* TIMELINE */
 #timeline{grid-column:1/-1;grid-row:3;background:rgba(2,6,12,0.98);border-top:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;padding:0 18px;backdrop-filter:blur(20px);}
 .tl-track{display:flex;align-items:center;position:relative;margin-bottom:5px;}
 .tl-conn{flex:1;height:2px;background:rgba(0,200,255,0.1);transition:background 0.4s;}
 .tl-conn.passed{background:var(--cyan);}
 .tl-node{width:26px;height:26px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.25s;font-size:8px;font-weight:700;background:var(--bg);}
-.tl-node:hover,.tl-node.active{transform:scale(1.18);}
-.tl-node.active{box-shadow:0 0 14px currentColor;}
+.tl-node:hover{transform:scale(1.15);}
+.tl-node.active{transform:scale(1.2);box-shadow:0 0 14px currentColor;}
 .tl-labels{display:flex;justify-content:space-between;padding:0 13px;}
-.tl-lbl{font-size:7px;color:var(--dim);text-align:center;letter-spacing:0.5px;transition:color 0.3s;min-width:26px;}
+.tl-lbl{font-size:7px;color:var(--dim);text-align:center;transition:color 0.3s;min-width:26px;}
 .tl-lbl.active{color:var(--cyan);}
 
-/* ── MODAL ── */
+/* MODAL */
 #modal-overlay{position:fixed;inset:0;background:rgba(1,4,9,0.88);backdrop-filter:blur(12px);z-index:9999;display:flex;align-items:center;justify-content:center;transition:opacity 0.4s;}
 #modal-overlay.hidden{opacity:0;pointer-events:none;}
-#modal-box{background:rgba(4,14,26,0.98);border:1px solid var(--brite);box-shadow:var(--gcyan);border-radius:8px;padding:28px 30px;max-width:480px;width:90%;}
+#modal-box{background:rgba(4,14,26,0.98);border:1px solid var(--brite);box-shadow:var(--gcyan);border-radius:8px;padding:28px 30px;max-width:480px;width:90%;text-align:center;}
 #modal-box h2{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;letter-spacing:3px;color:var(--cyan);text-shadow:var(--gcyan);margin-bottom:8px;}
-#modal-box p{font-size:11.5px;color:var(--dim);line-height:1.6;margin-bottom:16px;}
-#modal-box h3{font-family:'Orbitron',sans-serif;font-size:9.5px;letter-spacing:2px;color:var(--orange);margin-bottom:9px;}
-#modal-box ul{font-size:11px;padding-left:18px;line-height:1.85;color:var(--text);margin-bottom:16px;}
-.modal-note{background:rgba(0,200,255,0.04);border-left:3px solid var(--cyan);padding:10px 13px;font-size:10px;color:var(--dim);line-height:1.5;margin-bottom:22px;}
+#modal-box p{font-size:12px;color:var(--dim);line-height:1.6;margin-bottom:20px;}
+.modal-brief{background:rgba(0,200,255,0.04);border-left:3px solid var(--cyan);padding:14px;text-align:left;margin-bottom:22px;border-radius:0 4px 4px 0;}
+.modal-brief strong{color:#fff;font-size:10px;letter-spacing:1px;}
+.modal-brief ul{font-size:11px;color:var(--dim);margin-top:8px;padding-left:18px;line-height:1.8;}
 
-/* ── TOAST ── */
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+/* TOAST */
 .toast{position:fixed;top:64px;right:16px;z-index:9000;padding:9px 16px;border-radius:5px;font-size:10px;letter-spacing:1px;opacity:0;transition:opacity 0.3s;pointer-events:none;border:1px solid;font-family:'JetBrains Mono',monospace;}
 .toast.show{opacity:1;}
 .toast.ok{background:rgba(0,255,136,0.1);border-color:rgba(0,255,136,0.35);color:var(--green);}
 .toast.err{background:rgba(255,51,85,0.1);border-color:rgba(255,51,85,0.35);color:var(--red);}
 .toast.info{background:rgba(0,200,255,0.09);border-color:rgba(0,200,255,0.35);color:var(--cyan);}
+
+/* RESPONSIVE */
+@media(max-width:1100px){#app{grid-template-columns:220px 1fr 240px;}}
+@media(max-width:860px){#app{grid-template-columns:0px 1fr 0px;}#left-panel,#right-panel{display:none;}.logo-sub{display:none;}}
 </style>
 </head>
 <body>
-
 <canvas id="stars"></canvas>
 
-<!-- WELCOME MODAL -->
+<!-- MODAL -->
 <div id="modal-overlay">
-  <div id="modal-box" style="text-align: center; padding: 30px;">
-    <h2 style="color: var(--cyan); letter-spacing: 2px; margin-bottom: 10px;">CNN.VISUALIZER</h2>
-    <p style="font-size: 13px; color: var(--dim); margin-bottom: 25px; line-height: 1.5;">
-      Explore MobileNetV2, a real-world AI, and see exactly how it processes images — layer by layer.
-    </p>
-    
-    <div style="background: rgba(0, 200, 255, 0.05); border-left: 3px solid var(--cyan); padding: 15px; text-align: left; margin-bottom: 25px; border-radius: 0 4px 4px 0;">
-      <strong style="color: #ffffff; font-size: 11px; letter-spacing: 1px;">MISSION BRIEF:</strong>
-      <ul style="font-size: 12px; color: var(--dim); margin-top: 10px; padding-left: 20px; line-height: 1.8;">
-        <li><strong style="color: var(--orange);">UPLOAD</strong> an image (or click a sample).</li>
-        <li><strong style="color: var(--orange);">HIT PLAY</strong> to watch the AI extract patterns.</li>
-        <li><strong style="color: var(--cyan);">HOVER</strong> over feature maps for X-Ray vision.</li>
+  <div id="modal-box">
+    <h2>CNN.VISUALIZER</h2>
+    <p>Explore <strong style="color:var(--cyan)">MobileNetV2</strong>, a real-world AI — see exactly how it processes images layer by layer.</p>
+    <div class="modal-brief">
+      <strong>MISSION BRIEF:</strong>
+      <ul>
+        <li><strong style="color:var(--orange)">UPLOAD</strong> an image (or hit a sample button).</li>
+        <li><strong style="color:var(--orange)">HIT PLAY</strong> to watch the AI extract patterns live.</li>
+        <li><strong style="color:var(--cyan)">HOVER</strong> feature maps for 3× X-Ray zoom.</li>
+        <li><strong style="color:var(--cyan)">CLICK</strong> any timeline node to jump to that layer.</li>
       </ul>
     </div>
-
-    <button class="btn btn-cyan" id="btn-close-modal" style="width:100%; padding:12px; font-weight:bold; font-size:12px; letter-spacing:3px;">START EXPLORING →</button>
+    <button class="btn btn-cyan" id="btn-close-modal" style="width:100%;padding:12px;font-size:12px;letter-spacing:3px;">START EXPLORING →</button>
   </div>
 </div>
 
 <div id="toast" class="toast"></div>
 
 <div id="app">
-
   <!-- HEADER -->
   <div id="header">
     <div class="logo">CNN<span class="logo-dot">.</span>VISUALIZER<span class="logo-sub">MOBILENETV2 EXPLORER</span></div>
@@ -219,13 +206,13 @@ body::after{content:'';position:fixed;inset:0;
       <span id="step-lbl">LAYER 1/9</span>
       <div class="prog-wrap"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
       <div class="backend-badge" id="backend-badge">
-        <div class="backend-dot" id="backend-dot"></div>
+        <div class="backend-dot"></div>
         <span id="backend-lbl">CHECKING...</span>
       </div>
     </div>
-   <div class="header-controls">
-      <div style="display:flex; align-items:center; gap:6px; margin-right:10px;">
-        <span style="font-size:9px; font-family:'Orbitron', sans-serif; color:var(--text-dim); letter-spacing:1px;">SPEED</span>
+    <div class="header-controls">
+      <div style="display:flex;align-items:center;gap:6px;margin-right:8px;">
+        <span style="font-size:8.5px;font-family:'Orbitron',sans-serif;color:var(--dim);letter-spacing:1px;">SPEED</span>
         <select class="speed-sel" id="speed-sel">
           <option value="2000">0.5×</option>
           <option value="1200" selected>1×</option>
@@ -233,7 +220,6 @@ body::after{content:'';position:fixed;inset:0;
           <option value="300">4×</option>
         </select>
       </div>
-      
       <button class="btn btn-cyan"   id="btn-prev">◀ PREV</button>
       <button class="btn btn-orange" id="btn-play">▶ PLAY</button>
       <button class="btn btn-cyan"   id="btn-next">NEXT ▶</button>
@@ -245,41 +231,37 @@ body::after{content:'';position:fixed;inset:0;
   <div id="left-panel">
     <div class="panel-hdr">ARCHITECTURE LAYERS</div>
     <div id="layer-list"></div>
-    <!-- <div id="journey-status">Waiting for input...</div> -->
     <div id="image-section">
-      <div class="panel-hdr" style="padding:9px 0 7px;border:none;">INPUT IMAGE</div>
-      <div id="upload-zone" onclick="document.getElementById('file-input').click()" title="PRO TIP: Upload an image with a single, centered subject. AI gets confused by multiple objects or messy backgrounds!">
-        <div class="icon" style="color: var(--cyan);">⬆</div>
-        <p style="font-weight: bold; letter-spacing: 1px;">UPLOAD DATASET</p>
-        <div style="font-size: 8px; color: var(--text-dim); margin-top: 6px; line-height: 1.4;">
-            For best AI results:<br>
-            <span style="color: var(--orange);">• Single Subject</span><br>
-            <span style="color: var(--orange);">• Centered Focus</span>
-        </div>
+      <div class="panel-hdr" style="padding:8px 0 7px;border:none;">INPUT IMAGE</div>
+      <div id="upload-zone" onclick="document.getElementById('file-input').click()">
+        <div style="font-size:20px;color:var(--cyan);">⬆</div>
+        <p style="font-weight:bold;letter-spacing:1px;">UPLOAD IMAGE</p>
+        <p style="font-size:8px;margin-top:4px;">Single subject · Centered · Clear</p>
       </div>
       <input type="file" id="file-input" accept="image/*">
-      <div style="display:flex; gap:8px; margin-top:12px;">
-        <button class="btn btn-cyan" style="flex:1; padding:6px; font-size:9px; letter-spacing:1px;" onclick="loadSample('dog')">DOG (CLEAR)</button>
-        <button class="btn btn-orange" style="flex:1; padding:6px; font-size:9px; letter-spacing:1px;" onclick="loadSample('blur')">CAT (BLUR)</button>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn btn-cyan"   style="flex:1;padding:6px;font-size:8.5px;letter-spacing:1px;" onclick="loadSample('dog')">🐕 DOG</button>
+        <button class="btn btn-orange" style="flex:1;padding:6px;font-size:8.5px;letter-spacing:1px;" onclick="loadSample('cat')">🐈 CAT</button>
       </div>
       <img id="preview-img" alt="preview">
-      <div id="proc-status">ANALYZING IMAGE...</div>
+      <div id="proc-status" class="blinking">ANALYZING IMAGE...</div>
     </div>
   </div>
 
-  <!-- CENTER CANVAS -->
+  <!-- CENTER -->
   <div id="center-panel">
-<div id="journey-text" style="position: absolute; top: 80px; left: 50%; transform: translateX(-50%); background: var(--bg); border: 1px solid var(--cyan); padding: 5px 20px; border-radius: 20px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--cyan); z-index: 10; box-shadow: var(--glow-cyan);">
-      Awaiting input signal...
-    </div>
     <canvas id="main-canvas"></canvas>
     <div id="layer-label">SELECT A LAYER</div>
+    <div id="journey-text">Awaiting input signal...</div>
     <div id="fmap-drawer"><div id="fmap-inner"><div class="fmap-section-lbl">FEATURE MAPS</div></div></div>
-    <div id="prob-panel"><div class="prob-hdr">CLASS PROBABILITIES — SOFTMAX OUTPUT</div><div id="prob-bars"></div></div>
+    <div id="prob-panel">
+      <div class="prob-hdr">CLASS PROBABILITIES — SOFTMAX OUTPUT</div>
+      <div id="prob-bars"></div>
+    </div>
     <div id="explain-box"></div>
   </div>
 
-  <!-- RIGHT INSPECTOR -->
+  <!-- RIGHT -->
   <div id="right-panel">
     <div class="panel-hdr">LAYER INSPECTOR</div>
     <div id="inspector">
@@ -298,227 +280,183 @@ body::after{content:'';position:fixed;inset:0;
 </div>
 
 <script>
-/* ════════════════════════════════════════════════
-   LAYER DATA  (9 layers — MobileNetV2 walkthrough)
-════════════════════════════════════════════════ */
-/* ════════════════════════════════════════════════
-   LAYER DATA  (9 layers — MobileNetV2 walkthrough)
-════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   BACKEND URL — auto-detects local vs Render
+   FIX: Uses /health for ping (not /predict)
+   FIX: Single correct URL — no duplicates
+═══════════════════════════════════════════════════ */
+const BACKEND_URL = (
+  window.location.hostname === '127.0.0.1' ||
+  window.location.hostname === 'localhost'
+) ? 'http://127.0.0.1:5000' : 'https://cnn-visualizer-ffaj.onrender.com';
+
+/* ═══════════════════════════════════════════════════
+   LAYER DATA — 9 MobileNetV2 layers
+═══════════════════════════════════════════════════ */
 const LAYERS = [
-  {
-    id:0,name:'INPUT',short:'IN',color:'#ff6a00',type:'input',
-    shape:'3×224×224',params:0,flops:0,memory:'588KB',
-    formula:`<span style="color:#ff6a00; font-weight:bold; font-size:11px;">Raw Image ➔ Normalized Tensors</span><br><span style="font-size:8px; opacity:0.5; font-family:'JetBrains Mono', monospace; margin-top:4px; display:inline-block;">Math: X ∈ ℝ^{3×224×224}</span>`,
-    detail:'Pixels normalised to [-1, 1] via preprocess_input',
-    simple:'The raw image enters the network — resized to 224×224 with 3 RGB channels. Each pixel becomes a float32 value between -1 and 1.',
-    technical:'Input tensor shape: (1, 3, 224, 224). MobileNetV2 expects values in [-1,1] via tf.keras.applications.mobilenet_v2.preprocess_input which maps [0,255] → [-1,1].',
-    intuition:'The canvas before any painting begins.',
-    analogy:'<strong>Analogy:</strong> Handing a photograph to a detective — they see raw colours and shapes before interpreting anything meaningful.',
-    interview:'Always discuss input normalisation at interviews. Raw [0,255] values saturate gradients; [-1,1] or zero-mean-unit-variance normalisation keeps early-layer gradients healthy and training stable.',
-    paramPct:0,flopPct:0,memPct:5,
-    journey:'📥 Input: Receiving 224×224 RGB pixel data...',
-  },
-  {
-    id:1,name:'CONV 1',short:'C1',color:'#00c8ff',type:'conv',
-    shape:'32×112×112',params:864,flops:10838016,memory:'1.5MB',
-    formula:`<span style="color:#00c8ff; font-weight:bold; font-size:11px;">Pixels × Filters ➔ Feature Map</span><br><span style="font-size:8px; opacity:0.5; font-family:'JetBrains Mono', monospace; margin-top:4px; display:inline-block;">Math: Output = ⌊(W - K + 2P)/S⌋ + 1</span>`,
-    detail:'Kernel: 3×3 | Filters: 32 | Stride: 2 | Padding: 1',
-    simple:'32 small 3×3 filters slide across the image. Each filter learns to detect a different low-level pattern — vertical edges, horizontal gradients, colour blobs. Stride=2 halves the resolution.',
-    technical:'Standard Conv2D with stride=2 halves spatial dims from 224→112. 32 filters × 3 in-channels × 3×3 kernel = 864 parameters. Output: (1,32,112,112).',
-    intuition:'32 detectives, each looking for a different basic clue.',
-    analogy:'<strong>Analogy:</strong> Running 32 different Instagram filters simultaneously — each one highlighting a different visual feature of the same photo.',
-    interview:'Filters share weights across spatial positions (weight sharing). This gives translational equivariance and reduces params vs a fully-connected layer by orders of magnitude.',
-    paramPct:1,flopPct:18,memPct:22,
-    journey:'🔍 Conv1: Detecting basic edges and colour gradients...',
-  },
-  {
-    id:2,name:'RELU6',short:'R6',color:'#ff2d78',type:'relu',
-    shape:'32×112×112',params:0,flops:401408,memory:'1.5MB',
-    formula:`<span style="color:#ff2d78; font-weight:bold; font-size:11px;">Remove Negatives ➔ Keep Positives</span><br><span style="font-size:8px; opacity:0.5; font-family:'JetBrains Mono', monospace; margin-top:4px; display:inline-block;">Math: f(x) = min(max(0, x), 6)</span>`,
-    detail:'Element-wise | No learnable params | In-place op',
-    simple:'Negative values become 0, values above 6 are capped at 6. This adds non-linearity and keeps activations bounded — important for low-precision (int8) inference on mobile devices.',
-    technical:'Element-wise thresholding. ReLU6 is preferred over standard ReLU in MobileNet because capping at 6 helps when quantising to fixed-point arithmetic.',
-    intuition:'The network decides which signals to pass forward — and silences the rest.',
-    analogy:'<strong>Analogy:</strong> Like a neuron in your brain — it either fires (positive signal) or stays silent. No "negative firing" allowed.',
-    interview:'Without non-linearities, stacking linear layers collapses into a single linear transformation. ReLU enables the network to learn arbitrary functions (universal approximation theorem).',
-    paramPct:0,flopPct:2,memPct:22,
-    journey:'🧠 ReLU6: Filtering out negative activations, capping at 6...',
-  },
-  {
-    id:3,name:'DEPTHWISE',short:'DW',color:'#00e5c8',type:'conv',
-    shape:'32×112×112',params:288,flops:3612672,memory:'1.5MB',
-    formula:`<span style="color:#00e5c8; font-weight:bold; font-size:11px;">1 Filter per Channel ➔ Spatial Patterns</span><br><span style="font-size:8px; opacity:0.5; font-family:'JetBrains Mono', monospace; margin-top:4px; display:inline-block;">Math: Params = K × K × Channels_in</span>`,
-    detail:'Kernel: 3×3 | Groups: 32 (one filter per channel) | Stride: 1',
-    simple:'Instead of mixing all channels together, one 3×3 filter is applied independently to each channel. This isolates spatial patterns within each feature channel at a fraction of the compute cost.',
-    technical:'Depthwise Conv2D. Each of the 32 channels gets its own 3×3 filter (groups=input_channels). Params: 32×9=288. FLOPs ~8-9× lower than equivalent standard conv.',
-    intuition:'Looking at shapes without mixing colours yet.',
-    analogy:'<strong>Analogy:</strong> Examining a scene through red, green, and blue lenses one at a time rather than all at once.',
-    interview:'Depthwise Separable Convolution (DW + PW) is the core of MobileNet\'s efficiency. It factorises a standard conv into spatial filtering + channel mixing — saving 8-9× compute.',
-    paramPct:0,flopPct:5,memPct:22,
-    journey:'📐 Depthwise: Analysing spatial patterns per channel independently...',
-  },
-  {
-    id:4,name:'POINTWISE',short:'PW',color:'#00c8ff',type:'conv',
-    shape:'16×112×112',params:512,flops:6422528,memory:'784KB',
-    formula:`<span style="color:#00c8ff; font-weight:bold; font-size:11px;">1x1 Convolution ➔ Mix Colors/Channels</span><br><span style="font-size:8px; opacity:0.5; font-family:'JetBrains Mono', monospace; margin-top:4px; display:inline-block;">Math: Params = 1 × 1 × C_in × C_out</span>`,
-    detail:'Kernel: 1×1 | Filters: 16 | Stride: 1 | No spatial mixing',
-    simple:'A 1×1 convolution acts as a channel mixer. It combines the per-channel spatial features from the depthwise step into 16 richer feature maps, reducing channel count (32→16).',
-    technical:'Pointwise Conv2D. 1×1 convolution performs a learned linear projection across channels without any spatial mixing. Used here to reduce channels 32→16.',
-    intuition:'Mixing the colour channels into richer combined concepts.',
-    analogy:'<strong>Analogy:</strong> Like a soundboard mixer combining individual instrument tracks into a final blended soundtrack.',
-    interview:'1×1 convolutions enable channel-wise dimensionality reduction (like a bottleneck). They are computationally cheap but powerful for cross-channel feature interaction.',
-    paramPct:1,flopPct:10,memPct:12,
-    journey:'🎨 Pointwise: Mixing channel features into 16 combined maps...',
-  },
-  {
-    id:5,name:'BOTTLENECK',short:'BN',color:'#ff6a00',type:'conv',
-    shape:'24×56×56',params:3432,flops:10755072,memory:'294KB',
-    formula:`<span style="color:#ff6a00; font-weight:bold; font-size:11px;">Expand ➔ Extract ➔ Compress</span><br><span style="font-size:8px; opacity:0.5; font-family:'JetBrains Mono', monospace; margin-top:4px; display:inline-block;">Math: y = x + Residual(x) [if stride=1]</span>`,
-    detail:'Expansion: 6× | Stride: 2 (halves spatial dims) | Residual if shapes match',
-    simple:'The core repeating block of MobileNetV2. It expands channels 6×, applies depthwise conv to extract spatial features, then projects back down. The "inverted residual" shortcut connects the thin ends.',
-    technical:'Inverted Residual Block. Linear bottleneck (no activation on projection layer) preserves information. Residual connection added when input/output shapes match.',
-    intuition:'Breathing in to look closely, then breathing out to compress and move on.',
-    analogy:'<strong>Analogy:</strong> Unpacking a suitcase to find one outfit, examining every item, then tightly repacking to save space.',
-    interview:'MobileNetV2 uses *inverted* residuals — connects thin layers, not thick ones (opposite of ResNet). Linear bottleneck projection avoids information loss that ReLU would cause.',
-    paramPct:4,flopPct:25,memPct:5,
-    journey:'🧩 Bottleneck: Building complex shapes (expand → filter → compress)...',
-  },
-  {
-    id:6,name:'GLOBAL POOL',short:'GP',color:'#a855f7',type:'pool',
-    shape:'1280',params:0,flops:1280,memory:'5KB',
-    formula:`<span style="color:#a855f7; font-weight:bold; font-size:11px;">Average the Grid ➔ 1 Number per Channel</span><br><span style="font-size:8px; opacity:0.5; font-family:'JetBrains Mono', monospace; margin-top:4px; display:inline-block;">Math: Out = (1 / H×W) × ∑(pixels)</span>`,
-    detail:'Global Average Pooling | 7×7 spatial → 1×1 | No learnable params',
-    simple:'Averages the entire 7×7 spatial grid of each of the 1280 feature channels down to a single number. Completely destroys spatial information — we only care about "does this feature exist?"',
-    technical:'Global Average Pooling reduces (1,1280,7,7) → (1,1280). Far more robust to spatial translations than Flatten. Drastically reduces params entering the classifier head.',
-    intuition:'Summarising the whole image into 1280 concept-votes.',
-    analogy:'<strong>Analogy:</strong> Reading a 500-page book and summarising each chapter into a single excitement score from 1 to 10.',
-    interview:'GAP replaced Flatten+FC in many modern architectures. It acts as structural regularisation — the network learns feature detectors that are globally useful, not spatially dependent.',
-    paramPct:0,flopPct:0,memPct:1,
-    journey:'📦 Global Pool: Compressing 7×7 maps into 1280 concept scores...',
-  },
-  {
-    id:7,name:'FC / DENSE',short:'FC',color:'#ffd700',type:'fc',
-    shape:'1000',params:1281000,flops:2560000,memory:'4KB',
-    formula:`<span style="color:#ffd700; font-weight:bold; font-size:11px;">Weighted Sum ➔ Final Class Scores</span><br><span style="font-size:8px; opacity:0.5; font-family:'JetBrains Mono', monospace; margin-top:4px; display:inline-block;">Math: y = (Weights × Inputs) + Bias</span>`,
-    detail:'In: 1280 | Out: 1000 (ImageNet classes) | Linear (no activation)',
-    simple:'Connects every one of the 1280 feature scores to every one of the 1000 possible ImageNet classes. This is where the final "voting" happens — each feature influences every class score.',
-    technical:'Dense layer: 1280×1000 weight matrix + 1000 bias = 1,281,000 params. This is the largest single parameter block in MobileNetV2 despite being just one layer.',
-    intuition:'Every feature voting on every possible answer simultaneously.',
-    analogy:'<strong>Analogy:</strong> A jury of 1280 experts, each casting 1000 weighted votes on every possible verdict.',
-    interview:'The FC head contains ~94% of parameters in lightweight models like MobileNet. Swapping the imagenet head for a smaller one (transfer learning / fine-tuning) is standard practice for custom tasks.',
-    paramPct:94,flopPct:5,memPct:1,
-    journey:'⚖️ Dense: 1280 features voting across 1000 ImageNet classes...',
-  },
-  {
-    id:8,name:'SOFTMAX',short:'SM',color:'#00ff88',type:'softmax',
-    shape:'1000',params:0,flops:3000,memory:'4KB',
-    formula:`<span style="color:#00ff88; font-weight:bold; font-size:11px;">Raw Scores ➔ % Probabilities</span><br><span style="font-size:8px; opacity:0.5; font-family:'JetBrains Mono', monospace; margin-top:4px; display:inline-block;">Math: e^(score) / sum(e^(all_scores))</span>`,
-    detail:'Output: probability distribution | All values in (0,1) | Sum = 1.0',
-    simple:'Converts the 1000 raw scores (logits) into probabilities that sum to exactly 100%. The class with the highest probability is the model\'s final prediction.',
-    technical:'Numerically stable softmax. During training, log-softmax + NLLLoss (= cross-entropy) is used. At inference, raw softmax probabilities are returned by the model.',
-    intuition:'Turning raw confidence scores into a proper probability distribution.',
-    analogy:'<strong>Analogy:</strong> A panel of judges scoring dishes — Softmax converts raw scores into "% chance this dish wins."',
-    interview:'Softmax is differentiable everywhere. Temperature scaling (dividing logits by T before softmax) softens/sharpens the distribution — used in knowledge distillation and model calibration.',
-    paramPct:0,flopPct:0,memPct:1,
-    journey:'🏆 Softmax: Calculating final class probabilities — done!',
-  },
+  {id:0,name:'INPUT',short:'IN',color:'#ff6a00',type:'input',
+   shape:'3×224×224',params:0,flops:0,memory:'588KB',
+   formula:'X ∈ ℝ^{3×224×224}',fdetail:'Pixels normalised to [-1,1] via preprocess_input',
+   simple:'The raw image enters as a 224×224 RGB tensor. Each pixel becomes a float32 value between -1 and 1.',
+   technical:'Input shape: (1,3,224,224). MobileNetV2 preprocess_input maps [0,255] → [-1,1].',
+   intuition:'The canvas before any painting begins.',
+   analogy:'<strong>Analogy:</strong> Handing a photograph to a detective — they see raw colours and shapes before interpreting anything meaningful.',
+   interview:'Always discuss input normalisation at interviews. Raw [0,255] values saturate gradients; [-1,1] keeps early-layer gradients healthy.',
+   paramPct:0,flopPct:0,memPct:5,
+   journey:'📥 Input: Receiving 224×224 RGB pixel data...'},
+  {id:1,name:'CONV 1',short:'C1',color:'#00c8ff',type:'conv',
+   shape:'32×112×112',params:864,flops:10838016,memory:'1.5MB',
+   formula:'Output = floor((W-K+2P)/S)+1',fdetail:'Kernel: 3×3 | Filters: 32 | Stride: 2 | Padding: 1',
+   simple:'32 small 3×3 filters slide across the image. Each learns to detect a different low-level pattern — edges, gradients, colour blobs. Stride=2 halves resolution 224→112.',
+   technical:'Standard Conv2D stride=2. 32×3×(3×3)=864 params. Output: (1,32,112,112). Followed by BatchNorm+ReLU6.',
+   intuition:'32 detectives, each looking for a different basic clue.',
+   analogy:'<strong>Analogy:</strong> Running 32 different Instagram filters simultaneously — each highlighting a different visual feature.',
+   interview:'Weight sharing gives translational equivariance and reduces params vs FC layers by orders of magnitude.',
+   paramPct:1,flopPct:18,memPct:22,
+   journey:'🔍 Conv1: Detecting basic edges and colour gradients...'},
+  {id:2,name:'RELU6',short:'R6',color:'#ff2d78',type:'relu',
+   shape:'32×112×112',params:0,flops:401408,memory:'1.5MB',
+   formula:'f(x) = min(max(0, x), 6)',fdetail:'Element-wise | No learnable params | THIS is the activation layer',
+   simple:'THIS IS THE ACTIVATION LAYER. Negatives become 0, values above 6 are capped at 6. Without this, stacked convolutions collapse into one linear equation no matter how deep.',
+   technical:'ReLU6 caps at 6 for int8 quantisation compatibility on mobile. Standard ReLU has no upper bound.',
+   intuition:'The network decides which signals to pass forward — and silences the rest.',
+   analogy:'<strong>Analogy:</strong> Like a neuron in your brain — it either fires (positive) or stays silent. No negative firing allowed.',
+   interview:'Without activations, any number of stacked linear layers equals ONE linear layer. ReLU enables universal function approximation — classic interview question.',
+   paramPct:0,flopPct:2,memPct:22,
+   journey:'🧠 ReLU6 (Activation): Filtering out negatives, capping at 6...'},
+  {id:3,name:'DEPTHWISE',short:'DW',color:'#00e5c8',type:'conv',
+   shape:'32×112×112',params:288,flops:3612672,memory:'1.5MB',
+   formula:'y[c] = x[c] ★ k[c]  (per channel)',fdetail:'Kernel: 3×3 | Groups: 32 | One filter per channel',
+   simple:'One 3×3 filter per channel, applied independently. Isolates spatial patterns without mixing channels. 8-9× cheaper than standard conv.',
+   technical:'Depthwise Conv2D (groups=input_channels). 32×9=288 params. Core of MobileNet efficiency.',
+   intuition:'Looking at shapes without mixing colours yet.',
+   analogy:'<strong>Analogy:</strong> Examining a scene through red, green, and blue lenses separately rather than all at once.',
+   interview:'Depthwise Separable Conv (DW+PW) is the core MobileNet innovation. It splits spatial filtering from channel mixing, saving 8-9× FLOPs.',
+   paramPct:0,flopPct:5,memPct:22,
+   journey:'📐 Depthwise: Analysing spatial patterns per channel independently...'},
+  {id:4,name:'POINTWISE',short:'PW',color:'#00c8ff',type:'conv',
+   shape:'16×112×112',params:512,flops:6422528,memory:'784KB',
+   formula:'y = W × x  (1×1 Conv)',fdetail:'Kernel: 1×1 | Filters: 16 | No spatial mixing',
+   simple:'A 1×1 convolution that mixes channels. Combines the depthwise spatial features into 16 richer maps, reducing channels 32→16.',
+   technical:'Pointwise Conv2D. 1×1 projects channels without spatial mixing. Used for dimensionality reduction here (32→16).',
+   intuition:'Mixing the colour channels into richer combined concepts.',
+   analogy:'<strong>Analogy:</strong> A soundboard mixer combining separate instrument tracks into one blended soundtrack.',
+   interview:'1×1 convolutions enable cheap cross-channel feature interaction and bottleneck dimensionality reduction.',
+   paramPct:1,flopPct:10,memPct:12,
+   journey:'🎨 Pointwise: Mixing channel features into 16 combined maps...'},
+  {id:5,name:'BOTTLENECK',short:'BN',color:'#ff6a00',type:'conv',
+   shape:'24×56×56',params:3432,flops:10755072,memory:'294KB',
+   formula:'Expand → Depthwise → Project',fdetail:'Expansion: 6× | Stride: 2 | Residual if shapes match',
+   simple:'Core MobileNetV2 block. Expands channels 6×, applies depthwise conv, projects back down. Inverted residual shortcut connects thin ends.',
+   technical:'Inverted Residual Block. Linear bottleneck projection (no ReLU on output) preserves information.',
+   intuition:'Breathing in to look closely, breathing out to compress and move on.',
+   analogy:'<strong>Analogy:</strong> Unpacking a suitcase to inspect every item, then repacking tightly to save space.',
+   interview:'Inverted residuals connect thin layers (not thick like ResNet). Linear bottleneck avoids info loss from ReLU on low-dimensional representations.',
+   paramPct:4,flopPct:25,memPct:5,
+   journey:'🧩 Bottleneck: Expand → Depthwise filter → Compress (inverted residual)...'},
+  {id:6,name:'GLOBAL POOL',short:'GP',color:'#a855f7',type:'pool',
+   shape:'1280',params:0,flops:1280,memory:'5KB',
+   formula:'y_c = (1/H×W) × Σ x[c,i,j]',fdetail:'Global Average Pooling | 7×7 → 1×1 | No learnable params',
+   simple:'Averages each of the 1280 feature channels (7×7 grid) down to a single number. Destroys spatial position — we only care if a feature exists anywhere.',
+   technical:'GAP reduces (1,1280,7,7) → (1,1280). More robust to spatial translations than Flatten. Reduces classifier params drastically.',
+   intuition:'Summarising the whole image into 1280 concept-votes.',
+   analogy:'<strong>Analogy:</strong> Reading 500 pages and rating each chapter from 1-10 in a single score.',
+   interview:'GAP replaced Flatten+FC in most modern architectures. Forces globally useful feature detectors.',
+   paramPct:0,flopPct:0,memPct:1,
+   journey:'📦 Global Pool: Compressing 7×7 maps into 1280 concept scores...'},
+  {id:7,name:'FC / DENSE',short:'FC',color:'#ffd700',type:'fc',
+   shape:'1000',params:1281000,flops:2560000,memory:'4KB',
+   formula:'y = W·x + b',fdetail:'In: 1280 | Out: 1000 ImageNet classes | Linear, no activation',
+   simple:'Connects all 1280 feature scores to all 1000 possible classes. Every feature votes on every class. This layer holds 94% of all parameters.',
+   technical:'Dense: 1280×1000 weight matrix + 1000 bias = 1,281,000 params. Largest single parameter block.',
+   intuition:'Every feature voting on every possible answer simultaneously.',
+   analogy:'<strong>Analogy:</strong> A jury of 1280 experts each casting 1000 weighted votes on every possible verdict.',
+   interview:'FC head = 94% of params in lightweight models. Swapping it out is standard transfer learning practice.',
+   paramPct:94,flopPct:5,memPct:1,
+   journey:'⚖️ FC Dense: 1280 features voting across 1000 ImageNet classes...'},
+  {id:8,name:'SOFTMAX',short:'SM',color:'#00ff88',type:'softmax',
+   shape:'1000',params:0,flops:3000,memory:'4KB',
+   formula:'σ(z)_i = e^{z_i} / Σ_j e^{z_j}',fdetail:'Output: probabilities | All in (0,1) | Sum = 1.0',
+   simple:'Converts 1000 raw scores into probabilities summing to 100%. The class with the highest probability is the final prediction.',
+   technical:'Numerically stable softmax. Training uses log-softmax + NLLLoss. Inference returns raw probabilities.',
+   intuition:'Turning raw confidence scores into a proper probability distribution.',
+   analogy:'<strong>Analogy:</strong> A judging panel converting raw scores into % likelihood of winning.',
+   interview:'Temperature scaling (dividing logits by T) softens/sharpens distribution — used in knowledge distillation.',
+   paramPct:0,flopPct:0,memPct:1,
+   journey:'🏆 Softmax: Calculating final class probabilities — done!'},
 ];
 
-/* ════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    STARFIELD
-════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════ */
 (function(){
   const c=document.getElementById('stars'),ctx=c.getContext('2d');
-  function rsz(){c.width=innerWidth;c.height=innerHeight;}
-  rsz();window.addEventListener('resize',rsz);
+  function rsz(){c.width=innerWidth;c.height=innerHeight;}rsz();window.addEventListener('resize',rsz);
   const S=Array.from({length:190},()=>({x:Math.random(),y:Math.random(),r:Math.random()*1.2+0.15,a:Math.random(),da:(Math.random()-0.5)*0.003}));
-  (function draw(){
-    ctx.clearRect(0,0,c.width,c.height);
-    S.forEach(s=>{s.a+=s.da;if(s.a<0.05||s.a>1)s.da*=-1;ctx.beginPath();ctx.arc(s.x*c.width,s.y*c.height,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(170,215,255,${Math.max(0.05,s.a)})`;ctx.fill();});
-    requestAnimationFrame(draw);
-  })();
+  (function draw(){ctx.clearRect(0,0,c.width,c.height);S.forEach(s=>{s.a+=s.da;if(s.a<0.05||s.a>1)s.da*=-1;ctx.beginPath();ctx.arc(s.x*c.width,s.y*c.height,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(170,215,255,${Math.max(0.05,s.a)})`;ctx.fill();});requestAnimationFrame(draw);})();
 })();
 
-/* ════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    CANVAS
-════════════════════════════════════════════════ */
-const canvas=document.getElementById('main-canvas');
-const ctx=canvas.getContext('2d');
-
+═══════════════════════════════════════════════════ */
+const canvas = document.getElementById('main-canvas');
+const ctx = canvas.getContext('2d');
 function resizeCanvas(){const p=document.getElementById('center-panel');canvas.width=p.offsetWidth;canvas.height=p.offsetHeight;drawNetwork();}
 window.addEventListener('resize',resizeCanvas);
 
-/* ════════════════════════════════════════════════
-   STATE
-════════════════════════════════════════════════ */
-let currentLayer=0,isPlaying=false,playTimer=null;
-let uploadedImg=null,particles=[],kernelAnim={active:false,progress:0,idx:0};
+/* ═══════════════════════════════════════════════════
+   STATE — single source of truth
+═══════════════════════════════════════════════════ */
+let currentLayer = 0;
+let isPlaying = false;
+let playTimer = null;
+let uploadedImg = null;     // THE single image variable used everywhere
+let particles = [];
+let kernelAnim = {active:false,progress:0,idx:0};
 
-/* ════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    LAYOUT
-════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════ */
 function getLayout(){
   const W=canvas.width,H=canvas.height,N=LAYERS.length;
-  const margin=54,spacing=(W-margin*2)/(N-1);
-  const baseY=H*0.52;
+  const margin=54,spacing=(W-margin*2)/(N-1),baseY=H*0.52;
   const typeH={input:88,conv:82,relu:48,pool:58,fc:72,softmax:58};
-  return LAYERS.map((l,i)=>{
-    const h=typeH[l.type]||62;
-    return {x:margin+i*spacing,cx:margin+i*spacing,cy:baseY,y:baseY-h/2,w:26,h,layer:l,i};
-  });
+  return LAYERS.map((l,i)=>{const h=typeH[l.type]||62;return{x:margin+i*spacing,cx:margin+i*spacing,cy:baseY,y:baseY-h/2,w:26,h,layer:l};});
 }
+function hexA(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},${a})`;}
 
-function hexA(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g},${b},${a})`;}
-
-/* ════════════════════════════════════════════════
-   DRAW 3D BOX
-════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   3D BOX DRAWING
+═══════════════════════════════════════════════════ */
 function draw3DBox(lyt,active,passed){
-  const {x,y,w,h,layer}=lyt,col=layer.color,d=13,alpha=passed?0.38:1;
+  const{x,y,w,h,layer}=lyt,col=layer.color,d=13,alpha=passed?0.38:1;
   ctx.save();ctx.globalAlpha=alpha;
   if(active){ctx.shadowBlur=28;ctx.shadowColor=col;}
-
-  // Top face
+  // top face
   ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+w,y);ctx.lineTo(x+w+d*0.65,y-d*0.45);ctx.lineTo(x+d*0.65,y-d*0.45);ctx.closePath();
-  ctx.fillStyle=hexA(col,active?0.28:0.1);ctx.fill();
-  ctx.strokeStyle=hexA(col,active?0.85:0.38);ctx.lineWidth=active?1.4:0.7;ctx.stroke();
-
-  // Front face fill + stroke
-  ctx.beginPath();ctx.rect(x,y,w,h);
-  ctx.fillStyle=hexA(col,active?0.18:0.07);ctx.fill();
+  ctx.fillStyle=hexA(col,active?0.28:0.1);ctx.fill();ctx.strokeStyle=hexA(col,active?0.85:0.38);ctx.lineWidth=active?1.4:0.7;ctx.stroke();
+  // front face
+  ctx.beginPath();ctx.rect(x,y,w,h);ctx.fillStyle=hexA(col,active?0.18:0.07);ctx.fill();
   ctx.strokeStyle=hexA(col,active?0.9:0.4);ctx.lineWidth=active?1.4:0.7;ctx.stroke();
-
-  // Scanlines
+  // scanlines
   ctx.globalAlpha=alpha*(active?0.25:0.12);
   for(let sy=y+5;sy<y+h-2;sy+=6){ctx.beginPath();ctx.moveTo(x+1,sy);ctx.lineTo(x+w-1,sy);ctx.strokeStyle=col;ctx.lineWidth=0.5;ctx.stroke();}
-
-  // Dot grid
+  // dot grid
   ctx.globalAlpha=alpha*(active?0.7:0.22);
   const cols=Math.floor(w/5),rows=Math.floor(h/7);
-  for(let ci=0;ci<cols;ci++)for(let ri=0;ri<rows;ri++){
-    const px=x+3+ci*((w-6)/Math.max(cols-1,1));
-    const py=y+4+ri*((h-8)/Math.max(rows-1,1));
-    ctx.beginPath();ctx.arc(px,py,0.9,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
-  }
-
-  // Right face
+  for(let ci=0;ci<cols;ci++)for(let ri=0;ri<rows;ri++){const px=x+3+ci*((w-6)/Math.max(cols-1,1)),py=y+4+ri*((h-8)/Math.max(rows-1,1));ctx.beginPath();ctx.arc(px,py,0.9,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();}
+  // right face
   ctx.globalAlpha=alpha;
   ctx.beginPath();ctx.moveTo(x+w,y);ctx.lineTo(x+w+d*0.65,y-d*0.45);ctx.lineTo(x+w+d*0.65,y+h-d*0.45);ctx.lineTo(x+w,y+h);ctx.closePath();
-  ctx.fillStyle=hexA(col,active?0.1:0.04);ctx.fill();
-  ctx.strokeStyle=hexA(col,active?0.7:0.3);ctx.lineWidth=active?1.4:0.7;ctx.stroke();
-
-  // Active pulsing ring
-  if(active){
-    const p=0.75+0.25*Math.sin(Date.now()*0.005);
-    ctx.globalAlpha=p;ctx.strokeStyle=col;ctx.lineWidth=2;ctx.shadowBlur=16;ctx.shadowColor=col;
-    ctx.strokeRect(x-3,y-3,w+6,h+6);
-  }
+  ctx.fillStyle=hexA(col,active?0.1:0.04);ctx.fill();ctx.strokeStyle=hexA(col,active?0.7:0.3);ctx.lineWidth=active?1.4:0.7;ctx.stroke();
+  // active pulsing ring
+  if(active){const p=0.75+0.25*Math.sin(Date.now()*0.005);ctx.globalAlpha=p;ctx.strokeStyle=col;ctx.lineWidth=2;ctx.shadowBlur=16;ctx.shadowColor=col;ctx.strokeRect(x-3,y-3,w+6,h+6);}
   ctx.restore();
 }
 
-/* ════════════════════════════════════════════════
-   DRAW CONNECTIONS (bezier curves with gradient)
-════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   CONNECTIONS
+═══════════════════════════════════════════════════ */
 function drawConnections(layout){
   ctx.save();
   for(let i=0;i<layout.length-1;i++){
@@ -530,110 +468,68 @@ function drawConnections(layout){
     else if(done){grad.addColorStop(0,'rgba(0,200,255,0.55)');grad.addColorStop(1,'rgba(0,200,255,0.3)');}
     else{grad.addColorStop(0,'rgba(0,200,255,0.1)');grad.addColorStop(1,'rgba(0,200,255,0.06)');}
     ctx.beginPath();ctx.moveTo(x1,y1);ctx.bezierCurveTo(mx,y1,mx,y2,x2,y2);
-    ctx.strokeStyle=grad;ctx.lineWidth=active?2:(done?1.2:0.6);
-    ctx.shadowBlur=active?8:0;ctx.shadowColor=LAYERS[i].color;
-    ctx.stroke();ctx.shadowBlur=0;
+    ctx.strokeStyle=grad;ctx.lineWidth=active?2:(done?1.2:0.6);ctx.shadowBlur=active?8:0;ctx.shadowColor=LAYERS[i].color;ctx.stroke();ctx.shadowBlur=0;
   }
   ctx.restore();
 }
 
-/* ════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    PARTICLES
-════════════════════════════════════════════════ */
-function spawnParticles(from,to,color){
-  for(let i=0;i<14;i++){
-    particles.push({x:from.x+from.w,y:from.cy,tx:to.x,ty:to.cy,t:0,spd:0.007+Math.random()*0.013,color,r:2+Math.random()*3,trail:[]});
-  }
-}
-function tickParticles(){
-  particles=particles.filter(p=>p.t<1);
-  particles.forEach(p=>{
-    p.trail.push({x:p.x,y:p.y});if(p.trail.length>9)p.trail.shift();
-    p.t=Math.min(1,p.t+p.spd);
-    const t=p.t,x0=p.trail[0]?.x??p.x,y0=p.trail[0]?.y??p.y;
-    p.x=p.tx*t+x0*(1-t);p.y=p.ty*t+y0*(1-t);
-  });
-}
-function drawParticles(){
-  ctx.save();
-  particles.forEach(p=>{
-    p.trail.forEach((pt,i)=>{ctx.beginPath();ctx.arc(pt.x,pt.y,p.r*(i/p.trail.length)*0.8,0,Math.PI*2);ctx.fillStyle=hexA(p.color,(i/p.trail.length)*0.35);ctx.fill();});
-    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.color;ctx.shadowBlur=10;ctx.shadowColor=p.color;ctx.fill();ctx.shadowBlur=0;
-  });
-  ctx.restore();
-}
+═══════════════════════════════════════════════════ */
+function spawnParticles(from,to,color){for(let i=0;i<14;i++)particles.push({x:from.x+from.w,y:from.cy,tx:to.x,ty:to.cy,t:0,spd:0.007+Math.random()*0.013,color,r:2+Math.random()*3,trail:[]});}
+function tickParticles(){particles=particles.filter(p=>p.t<1);particles.forEach(p=>{p.trail.push({x:p.x,y:p.y});if(p.trail.length>9)p.trail.shift();p.t=Math.min(1,p.t+p.spd);const x0=p.trail[0]?.x??p.x,y0=p.trail[0]?.y??p.y;p.x=p.tx*p.t+x0*(1-p.t);p.y=p.ty*p.t+y0*(1-p.t);});}
+function drawParticles(){ctx.save();particles.forEach(p=>{p.trail.forEach((pt,i)=>{ctx.beginPath();ctx.arc(pt.x,pt.y,p.r*(i/p.trail.length)*0.8,0,Math.PI*2);ctx.fillStyle=hexA(p.color,(i/p.trail.length)*0.35);ctx.fill();});ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.color;ctx.shadowBlur=10;ctx.shadowColor=p.color;ctx.fill();ctx.shadowBlur=0;});ctx.restore();}
 
-/* ════════════════════════════════════════════════
-   KERNEL SLIDE ANIMATION
-════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   KERNEL SLIDE
+═══════════════════════════════════════════════════ */
 function startKernelAnim(idx){kernelAnim={active:true,progress:0,idx};}
 function drawKernelAnim(layout){
   if(!kernelAnim.active)return;
   kernelAnim.progress+=0.012;if(kernelAnim.progress>=1){kernelAnim.active=false;return;}
   const l=layout[kernelAnim.idx];
-  const kx=l.x+2+kernelAnim.progress*(l.w-10);
-  const ky=l.y+4+Math.sin(kernelAnim.progress*Math.PI*4)*(l.h*0.28);
-  ctx.save();ctx.strokeStyle='#ffd700';ctx.lineWidth=1.5;ctx.shadowBlur=8;ctx.shadowColor='#ffd700';
-  ctx.strokeRect(kx,ky,8,8);ctx.fillStyle='rgba(255,215,0,0.12)';ctx.fillRect(kx,ky,8,8);
-  ctx.shadowBlur=0;ctx.restore();
+  const kx=l.x+2+kernelAnim.progress*(l.w-10),ky=l.y+4+Math.sin(kernelAnim.progress*Math.PI*4)*(l.h*0.28);
+  ctx.save();ctx.strokeStyle='#ffd700';ctx.lineWidth=1.5;ctx.shadowBlur=8;ctx.shadowColor='#ffd700';ctx.strokeRect(kx,ky,8,8);ctx.fillStyle='rgba(255,215,0,0.12)';ctx.fillRect(kx,ky,8,8);ctx.shadowBlur=0;ctx.restore();
 }
 
-/* ════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    MAIN DRAW LOOP
-════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════ */
 function drawNetwork(){
   if(!canvas.width)return;
   ctx.clearRect(0,0,canvas.width,canvas.height);
   const layout=getLayout();
   drawConnections(layout);
   layout.forEach((l,i)=>draw3DBox(l,i===currentLayer,i<currentLayer));
-  // Short labels
   const shorts=['IN','C1','R6','DW','PW','BN','GP','FC','SM'];
-  layout.forEach((l,i)=>{
-    ctx.save();ctx.globalAlpha=i===currentLayer?1:(i<currentLayer?0.5:0.28);
-    ctx.font='700 7.5px Orbitron';ctx.fillStyle=LAYERS[i].color;ctx.textAlign='center';
-    ctx.fillText(shorts[i]||LAYERS[i].short,l.cx+13,l.y+l.h+15);ctx.restore();
-  });
+  layout.forEach((l,i)=>{ctx.save();ctx.globalAlpha=i===currentLayer?1:(i<currentLayer?0.5:0.28);ctx.font='700 7.5px Orbitron';ctx.fillStyle=LAYERS[i].color;ctx.textAlign='center';ctx.fillText(shorts[i],l.cx+13,l.y+l.h+15);ctx.restore();});
   if(kernelAnim.active)drawKernelAnim(layout);
   tickParticles();drawParticles();
   requestAnimationFrame(drawNetwork);
 }
 
-/* ════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    NAVIGATION
-════════════════════════════════════════════════ */
-function goToLayer(idx,animate=true){
-// INJECTION: Update Journey Text
-  const journeyMap = [
-    "📥 Receiving raw RGB pixels...",
-    "🔍 Conv1: Detecting basic edges...",
-    "🧠 ReLU: Filtering out the noise...",
-    "📐 Depthwise: Analyzing spatial patterns...",
-    "🎨 Pointwise: Mixing color features...",
-    "🧩 Bottleneck: Building complex shapes...",
-    "📦 Global Pool: Summarizing the data...",
-    "⚖️ FC: Every feature is voting...",
-    "🏆 Softmax: Generating probabilities!"
-  ];
-  const jEl = document.getElementById('journey-text');
-  if(jEl) jEl.innerText = journeyMap[idx] || "Processing...";
+═══════════════════════════════════════════════════ */
+function goToLayer(idx, animate=true){
   if(idx<0||idx>=LAYERS.length)return;
   currentLayer=idx;
   const l=LAYERS[idx];
   if(animate&&idx>0){const layout=getLayout();spawnParticles(layout[idx-1],layout[idx],l.color);}
   if(['conv','pool'].includes(l.type))startKernelAnim(idx);
-  //document.getElementById('journey-status').textContent=l.journey||'Processing...';
-  const lbl=document.getElementById('layer-label');
-  lbl.textContent=l.name;lbl.style.color=l.color;lbl.style.textShadow=`0 0 20px ${l.color}88`;
-  const pct=(idx/(LAYERS.length-1))*100;
-  document.getElementById('prog-fill').style.width=pct+'%';
+  // journey text
+  const jEl=document.getElementById('journey-text');if(jEl)jEl.textContent=l.journey||'Processing...';
+  // label
+  const lbl=document.getElementById('layer-label');lbl.textContent=l.name;lbl.style.color=l.color;lbl.style.textShadow=`0 0 20px ${l.color}88`;
+  // progress
+  document.getElementById('prog-fill').style.width=((idx/(LAYERS.length-1))*100)+'%';
   document.getElementById('step-lbl').textContent=`LAYER ${idx+1}/${LAYERS.length}`;
   updateLayerList();updateTimeline();updateInspector();updateCenterPanels();
 }
 
-/* ════════════════════════════════════════════════
-   LEFT LAYER LIST
-════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   LAYER LIST
+═══════════════════════════════════════════════════ */
 function buildLayerList(){
   document.getElementById('layer-list').innerHTML=LAYERS.map((l,i)=>`
     <div class="layer-item" id="li-${i}" onclick="stopPlay();goToLayer(${i})">
@@ -646,45 +542,35 @@ function buildLayerList(){
     </div>`).join('');
 }
 function updateLayerList(){
-  LAYERS.forEach((_,i)=>{
-    const el=document.getElementById(`li-${i}`);
-    if(!el)return;
-    el.classList.toggle('active',i===currentLayer);
-    el.classList.toggle('passed',i<currentLayer);
-  });
+  LAYERS.forEach((_,i)=>{const el=document.getElementById(`li-${i}`);if(!el)return;el.classList.toggle('active',i===currentLayer);el.classList.toggle('passed',i<currentLayer);});
   document.getElementById(`li-${currentLayer}`)?.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-/* ════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    TIMELINE
-════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════ */
 function buildTimeline(){
   const track=document.getElementById('tl-track'),labels=document.getElementById('tl-labels');
   track.innerHTML='';labels.innerHTML='';
   LAYERS.forEach((l,i)=>{
     if(i>0){const c=document.createElement('div');c.className='tl-conn';c.id=`tc-${i}`;track.appendChild(c);}
-    const n=document.createElement('div');n.className='tl-node';n.id=`tn-${i}`;
-    n.textContent=l.short;n.style.borderColor=l.color;n.style.color=l.color;
-    n.title=l.name;n.onclick=()=>{stopPlay();goToLayer(i);};track.appendChild(n);
+    const n=document.createElement('div');n.className='tl-node';n.id=`tn-${i}`;n.textContent=l.short;n.style.borderColor=l.color;n.style.color=l.color;n.title=l.name;n.onclick=()=>{stopPlay();goToLayer(i);};track.appendChild(n);
     const lb=document.createElement('div');lb.className='tl-lbl';lb.id=`tl-${i}`;lb.textContent=l.short;labels.appendChild(lb);
   });
 }
 function updateTimeline(){
   LAYERS.forEach((l,i)=>{
-    const n=document.getElementById(`tn-${i}`),lb=document.getElementById(`tl-${i}`);
-    if(!n)return;
+    const n=document.getElementById(`tn-${i}`),lb=document.getElementById(`tl-${i}`);if(!n)return;
     const act=i===currentLayer,pas=i<currentLayer;
-    n.classList.toggle('active',act);
-    n.style.background=act?l.color+'33':(pas?l.color+'18':'var(--bg)');
-    n.style.boxShadow=act?`0 0 14px ${l.color}`:(pas?`0 0 6px ${l.color}44`:'none');
+    n.classList.toggle('active',act);n.style.background=act?l.color+'33':(pas?l.color+'18':'var(--bg)');n.style.boxShadow=act?`0 0 14px ${l.color}`:(pas?`0 0 6px ${l.color}44`:'none');
     lb?.classList.toggle('active',act);
     if(i>0){const tc=document.getElementById(`tc-${i}`);if(tc)tc.className='tl-conn'+(i<=currentLayer?' passed':'');}
   });
 }
 
-/* ════════════════════════════════════════════════
-   INSPECTOR PANEL UPDATE
-════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   INSPECTOR
+═══════════════════════════════════════════════════ */
 function updateInspector(){
   const l=LAYERS[currentLayer],c=l.color;
   document.getElementById('inspector').innerHTML=`
@@ -692,128 +578,99 @@ function updateInspector(){
       <div style="width:7px;height:7px;border-radius:50%;background:${c};box-shadow:0 0 7px ${c}"></div>
       ${l.name} &mdash; ${l.type.toUpperCase()}
     </div>
-
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-v" style="color:${c}">${l.shape}</div><div class="stat-k">OUTPUT SHAPE</div></div>
-      <div class="stat-card"><div class="stat-v" style="color:${c}">${l.params?l.params.toLocaleString():'—'}</div><div class="stat-k">PARAMETERS</div></div>
+      <div class="stat-card"><div class="stat-v" style="color:${c}">${l.params?l.params.toLocaleString():'0'}</div><div class="stat-k">PARAMETERS</div></div>
       <div class="stat-card"><div class="stat-v" style="color:${c}">${l.memory}</div><div class="stat-k">MEMORY</div></div>
-      <div class="stat-card"><div class="stat-v" style="color:${c}">${l.flops?(l.flops/1000).toFixed(0)+'K':'—'}</div><div class="stat-k">FLOPs</div></div>
+      <div class="stat-card"><div class="stat-v" style="color:${c}">${l.flops?(l.flops/1000).toFixed(0)+'K':'0'}</div><div class="stat-k">FLOPs</div></div>
     </div>
-
     <div class="insp-sec">
       <div class="insp-lbl">OPERATION</div>
-      <div class="formula-box">${l.formula}<span class="formula-detail">${l.detail}</span></div>
+      <div class="formula-box">${l.formula}<span class="formula-detail">${l.fdetail}</span></div>
     </div>
-
     <div class="insp-sec">
       <div class="insp-lbl">WHAT'S HAPPENING</div>
       <div class="insp-text">${l.simple}</div>
     </div>
-
     <div class="insp-sec">
       <div class="insp-lbl">RESOURCE USAGE</div>
       <div class="bar-row"><span class="bar-lbl">Params</span><div class="bar-track"><div class="bar-fill" style="width:${l.paramPct}%;background:${c}"></div></div><span class="bar-pct">${l.paramPct}%</span></div>
       <div class="bar-row"><span class="bar-lbl">FLOPs</span><div class="bar-track"><div class="bar-fill" style="width:${l.flopPct}%;background:var(--teal)"></div></div><span class="bar-pct">${l.flopPct}%</span></div>
       <div class="bar-row"><span class="bar-lbl">Memory</span><div class="bar-track"><div class="bar-fill" style="width:${l.memPct}%;background:var(--purple)"></div></div><span class="bar-pct">${l.memPct}%</span></div>
     </div>
-
-    <div class="insp-sec" style="background: rgba(255, 106, 0, 0.05); border: 1px solid var(--orange); padding: 10px; border-radius: 4px; margin-bottom: 15px;">
-      <div class="insp-lbl" style="color: var(--orange); margin-bottom: 6px;">💡 REAL-WORLD ANALOGY</div>
-      <div class="analogy-box" style="color: #ffffff; font-size: 11.5px; line-height: 1.5;">${l.analogy}</div>
+    <div class="insp-sec">
+      <div class="insp-lbl">REAL-WORLD ANALOGY</div>
+      <div class="analogy-box">${l.analogy}</div>
     </div>
-
-    <div class="insp-sec" style="opacity: 0.35; transition: opacity 0.3s ease; cursor: default;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.35">
+    <div class="insp-sec hover-fade">
       <div class="insp-lbl">TECHNICAL DEPTH</div>
       <div class="insp-text" style="font-size:10px;color:var(--dim)">${l.technical}</div>
     </div>
-
-    <div class="insp-sec" style="opacity: 0.35; transition: opacity 0.3s ease; cursor: default;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.35">
+    <div class="insp-sec hover-fade">
       <div class="insp-lbl">INTERVIEW INSIGHT</div>
       <div class="interview-box"><div class="tag">INTERVIEW PREP</div><div>${l.interview}</div></div>
     </div>
-
     <div class="intuition-box">
       <div style="font-size:8px;color:var(--dim);font-family:Orbitron,sans-serif;letter-spacing:2px;margin-bottom:4px">ONE-LINE INTUITION</div>
       <div style="font-size:11.5px;color:${c};font-style:italic">"${l.intuition}"</div>
     </div>
-
     ${uploadedImg&&['conv','relu','pool'].includes(l.type)?`
     <div class="insp-sec" style="margin-top:12px">
       <div class="insp-lbl">FEATURE MAP PREVIEW</div>
-      <div class="fmap-thumb-area" id="fmap-thumb-area">
-        <span style="font-size:9px;color:var(--dim)">Rendering...</span>
-      </div>
-    </div>`:''}
-  `;
-  if(uploadedImg&&['conv','relu','pool'].includes(l.type)){
-    setTimeout(()=>populateInspectorThumbs(l),30);
-  }
+      <div class="fmap-thumb-area" id="fmap-thumb-area"><span style="font-size:9px;color:var(--dim)">Rendering...</span></div>
+    </div>`:''}`;
+  if(uploadedImg&&['conv','relu','pool'].includes(l.type))setTimeout(()=>populateInspectorThumbs(l),30);
 }
 
 function populateInspectorThumbs(l){
-  const area=document.getElementById('fmap-thumb-area');
-  if(!area)return;
-  area.innerHTML='';
-  generateFeatureMaps(currentLayer,uploadedImg).slice(0,4).forEach((mc,i)=>{
-    const th=document.createElement('canvas');th.width=mc.width;th.height=mc.height;
-    th.className='fmap-thumb';th.style.border=`1px solid ${l.color}44`;
-    th.getContext('2d').drawImage(mc,0,0);area.appendChild(th);
+  const area=document.getElementById('fmap-thumb-area');if(!area)return;area.innerHTML='';
+  generateFeatureMaps(currentLayer,uploadedImg).slice(0,4).forEach(mc=>{
+    const th=document.createElement('canvas');th.width=mc.width;th.height=mc.height;th.className='fmap-thumb';th.style.border=`1px solid ${l.color}44`;th.getContext('2d').drawImage(mc,0,0);area.appendChild(th);
   });
 }
 
-/* ════════════════════════════════════════════════
-   CENTER PANELS (feature maps + probabilities)
-════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   CENTER PANELS
+═══════════════════════════════════════════════════ */
 function updateCenterPanels(){
   const l=LAYERS[currentLayer];
-  const drawer=document.getElementById('fmap-drawer');
-  const inner=document.getElementById('fmap-inner');
-  const probPanel=document.getElementById('prob-panel');
-  const explainBox=document.getElementById('explain-box');
+  const drawer=document.getElementById('fmap-drawer'),inner=document.getElementById('fmap-inner');
+  const probPanel=document.getElementById('prob-panel'),explainBox=document.getElementById('explain-box');
   inner.innerHTML='<div class="fmap-section-lbl">FEATURE MAPS</div>';
   probPanel.classList.remove('open');explainBox.classList.remove('open');drawer.classList.remove('open');
-
-  if(l.type==='softmax'){
-    probPanel.classList.add('open');explainBox.classList.add('open');
-    renderProbabilities();return;
-  }
+  if(l.type==='softmax'){probPanel.classList.add('open');explainBox.classList.add('open');renderProbabilities();return;}
   if(!uploadedImg||!['conv','relu','pool','fc'].includes(l.type))return;
-
   drawer.classList.add('open');
   generateFeatureMaps(currentLayer,uploadedImg).forEach((mc,i)=>{
     const wrap=document.createElement('div');wrap.className='fmap-wrap';
-    const cv=document.createElement('canvas');cv.width=mc.width;cv.height=mc.height;cv.className='fmap-canvas';
-    cv.getContext('2d').drawImage(mc,0,0);
+    const cv=document.createElement('canvas');cv.width=mc.width;cv.height=mc.height;cv.className='fmap-canvas';cv.getContext('2d').drawImage(mc,0,0);
     const lbl=document.createElement('div');lbl.className='fmap-lbl';lbl.style.color=l.color;lbl.textContent=`F${i+1}`;
     wrap.appendChild(cv);wrap.appendChild(lbl);inner.appendChild(wrap);
   });
 }
 
-/* ════════════════════════════════════════════════
-   SIMULATED FEATURE MAPS (client-side pixel transforms)
-════════════════════════════════════════════════ */
-function generateFeatureMaps(layerIdx,imgEl){
-  const l=LAYERS[layerIdx];
-  const num=l.type==='fc'?4:8;
-  const sz=l.type==='pool'?28:56;
+/* ═══════════════════════════════════════════════════
+   SIMULATED FEATURE MAPS (client-side pixel filters)
+═══════════════════════════════════════════════════ */
+function generateFeatureMaps(layerIdx, imgEl){
+  const l=LAYERS[layerIdx],num=l.type==='fc'?4:8,sz=l.type==='pool'?28:56;
   const FILTERS=[
     (r,g,b)=>[Math.max(0,r-g)*1.5,Math.max(0,g-b)*1.5,0],
     (r,g,b)=>[0,Math.max(0,g-r)*1.5,Math.max(0,b-g)*1.5],
-    (r,g,b)=>{const v=(r+g+b)/3;return [v*1.4,0,0];},
-    (r,g,b)=>{const v=(r+g+b)/3;return [0,v*1.4,0];},
-    (r,g,b)=>{const v=(r+g+b)/3;return [0,0,v*1.4];},
+    (r,g,b)=>{const v=(r+g+b)/3;return[v*1.4,0,0];},
+    (r,g,b)=>{const v=(r+g+b)/3;return[0,v*1.4,0];},
+    (r,g,b)=>{const v=(r+g+b)/3;return[0,0,v*1.4];},
     (r,g,b)=>[255-r,255-g,255-b],
-    (r,g,b)=>{const v=(r+g+b)/3;return [v>110?255:0,v>110?180:0,0];},
-    (r,g,b)=>{const v=Math.abs(r-g);return [v,v*0.5,255-v];},
+    (r,g,b)=>{const v=(r+g+b)/3;return[v>110?255:0,v>110?180:0,0];},
+    (r,g,b)=>{const v=Math.abs(r-g);return[v,v*0.5,255-v];},
   ];
   const isRelu=l.type==='relu';
   return Array.from({length:num},(_,m)=>{
     const oc=document.createElement('canvas');oc.width=sz;oc.height=sz;
     const octx=oc.getContext('2d');octx.drawImage(imgEl,0,0,sz,sz);
-    const id=octx.getImageData(0,0,sz,sz);const d=id.data;
-    const fn=FILTERS[m%FILTERS.length];
+    const id=octx.getImageData(0,0,sz,sz),d=id.data,fn=FILTERS[m%FILTERS.length];
     for(let pi=0;pi<d.length;pi+=4){
-      let [nr,ng,nb]=fn(d[pi],d[pi+1],d[pi+2]);
+      let[nr,ng,nb]=fn(d[pi],d[pi+1],d[pi+2]);
       if(isRelu){nr=Math.max(0,nr-55);ng=Math.max(0,ng-55);nb=Math.max(0,nb-55);}
       d[pi]=Math.min(255,nr);d[pi+1]=Math.min(255,ng);d[pi+2]=Math.min(255,nb);
     }
@@ -821,213 +678,222 @@ function generateFeatureMaps(layerIdx,imgEl){
   });
 }
 
-/* ════════════════════════════════════════════════
-   PROBABILITY BARS  (uses real Flask predictions)
-════════════════════════════════════════════════ */
-/* ════════════════════════════════════════════════
-   PROBABILITY BARS  (uses real Flask predictions)
-════════════════════════════════════════════════ */
-/* ════════════════════════════════════════════════
-    PROBABILITY BARS  (uses real Flask predictions)
-════════════════════════════════════════════════ */
-function renderProbabilities() {
-  const bars = document.getElementById('prob-bars');
-  const explain = document.getElementById('explain-box');
-  
-  if (!bars) return;
-  bars.innerHTML = '';
+/* ═══════════════════════════════════════════════════
+   RENDER PROBABILITIES
+   FIX: Properly handles null, shows correct standby,
+        uses window.realPredictions correctly
+═══════════════════════════════════════════════════ */
+function renderProbabilities(){
+  const bars=document.getElementById('prob-bars');
+  const explain=document.getElementById('explain-box');
+  if(!bars)return;
+  bars.innerHTML='';
 
-  const preds = window.realPredictions;
+  const preds=window.realPredictions;
 
-  // 🔴 DEBUG TOOL: This will print exactly what the UI sees!
-  console.log("Softmax layer is trying to render. Data it sees:", preds);
-
-  // 1. SMART FALLBACK: If data isn't here yet, show a loading state instead of failing
-  if (!preds || !preds.length) {
-    bars.innerHTML = '<div style="font-size:11px;color:var(--dim);text-align:center;padding:15px;border:1px dashed var(--dim);border-radius:5px;">Awaiting AI predictions from backend...</div>';
-    if (explain) {
-        explain.innerHTML = '<strong>Standby:</strong> Model is processing the tensor. If Render is asleep, this may take 30-50 seconds.';
-        explain.classList.add('open');
-    }
+  // No predictions yet — show informative standby
+  if(!preds||!preds.length){
+    bars.innerHTML=`
+      <div style="text-align:center;padding:14px 8px;">
+        <div style="font-size:20px;margin-bottom:8px;opacity:0.4">📊</div>
+        <div style="font-size:10px;color:var(--dim);line-height:1.6">
+          Upload an image to see<br>real MobileNetV2 predictions<br>
+          <span style="font-size:8.5px;opacity:0.6;display:block;margin-top:6px">Backend may take 30-50s to wake up on first use</span>
+        </div>
+      </div>`;
+    if(explain){explain.innerHTML='<strong>Standby:</strong> No image processed yet. Upload any image to get live predictions from MobileNetV2.';explain.classList.add('open');}
     return;
   }
 
-  // 2. YOUR LOW CONFIDENCE LOGIC (Untouched, because it's awesome)
-  const topPrediction = preds[0];
-  let frontendWarningHTML = '';
-
-  if (topPrediction.probability < 0.30) {
-      frontendWarningHTML = `
-          <div style="color:var(--orange); font-size:11px; margin-bottom:12px; padding:10px; border:1px solid var(--orange); border-radius:4px; background:rgba(255,106,0,0.05); font-family: 'Space Grotesk', sans-serif;">
-              ⚠️ LOW CONFIDENCE WARNING: The AI is unsure of this prediction.<br><br>
-              <strong>Common AI failure modes:</strong> Multiple dominant objects in the frame, a blurry subject, unusual lighting, or a cluttered background disrupting pattern extraction.
-          </div>
-      `;
+  // Low confidence warning
+  const maxP=Math.max(...preds.map(p=>p.probability));
+  let warnHTML='';
+  if(maxP<0.30){
+    warnHTML=`<div style="color:var(--orange);font-size:9.5px;margin-bottom:10px;padding:8px;border:1px solid rgba(255,106,0,0.4);border-radius:4px;background:rgba(255,106,0,0.05);">
+      ⚠️ LOW CONFIDENCE (${(maxP*100).toFixed(1)}%)<br>
+      <span style="font-size:8.5px;opacity:0.8">Try a single, centered, clear subject</span></div>`;
   }
 
-  // 3. RENDER THE BARS
-  // Using inline styles here just in case your CSS is missing '.prob-row' classes
-  let html = '';
-  preds.forEach((p, i) => {
-      const pct = (p.probability * 100).toFixed(1);
-      const w = Math.max(pct, 1); // Ensure even 0.1% gets a tiny sliver
-      const color = i === 0 ? 'var(--green)' : 'var(--cyan)'; 
-      const label = p.label.replace(/_/g, ' ').toUpperCase();
-      
-      html += `
-      <div style="display:flex;align-items:center;margin-bottom:8px;font-size:10px;font-family:'JetBrains Mono',monospace;">
-          <div style="width:110px;text-align:right;padding-right:10px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${label}">${label}</div>
-          <div style="flex-grow:1;background:rgba(255,255,255,0.05);height:10px;border-radius:5px;overflow:hidden;position:relative;">
-              <div style="width:${w}%;background:${color};height:100%;transition:width 0.8s cubic-bezier(0.4, 0, 0.2, 1);box-shadow:0 0 8px ${color}"></div>
-          </div>
-          <div style="width:45px;text-align:right;color:${color};font-weight:bold;">${pct}%</div>
-      </div>`;
+  // Render bars
+  preds.forEach((p,i)=>{
+    const pct=(p.probability*100).toFixed(1);
+    const isTop=p.probability===maxP;
+    const row=document.createElement('div');
+    row.className='prob-row';
+    row.innerHTML=`
+      <div class="prob-cls" title="${p.label.replace(/_/g,' ')}">${p.label.replace(/_/g,' ').toUpperCase()}</div>
+      <div class="prob-track"><div class="prob-bar${isTop?' top':''}" id="pb-${i}" style="width:0%"></div></div>
+      <div class="prob-pct${isTop?' top':''}">${pct}%</div>`;
+    bars.appendChild(row);
+    setTimeout(()=>{const el=document.getElementById(`pb-${i}`);if(el)el.style.width=pct+'%';},80+i*70);
   });
-  
-  bars.innerHTML = html;
 
-  // 4. COMBINE WARNING AND FLASK EXPLANATION
-  if (frontendWarningHTML || window.realExplanation) {
-    let finalContentHTML = '';
-    
-    if (frontendWarningHTML) {
-        finalContentHTML += frontendWarningHTML;
-    }
-    
-    if (window.realExplanation) {
-        if (finalContentHTML) finalContentHTML += '<div style="margin-top:10px; border-top:1px solid var(--border); padding-top:10px;"></div>';
-        finalContentHTML += window.realExplanation;
-    }
-
-    explain.innerHTML = finalContentHTML;
-    explain.classList.add('open');
-  } else {
-    explain.classList.remove('open');
+  // Explanation strip
+  if(explain){
+    let ec=warnHTML;
+    if(window.realExplanation)ec+=(ec?'<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:6px;"></div>':'')+window.realExplanation;
+    if(ec){explain.innerHTML=ec;explain.classList.add('open');}
   }
 }
-/* ════════════════════════════════════════════════
-   IMAGE UPLOAD + FLASK /predict
-════════════════════════════════════════════════ */
-document.getElementById('file-input').addEventListener('change', async function(e){
-  const file=e.target.files[0];
-  if(!file)return;
-  if(file.size>10*1024*1024){toast('File too large — max 10MB','err');return;}
 
-  // 1. Reset UI
-  if (typeof resetForNewImage === 'function') resetForNewImage();
+/* ═══════════════════════════════════════════════════
+   setUploadedImage — SINGLE SOURCE OF TRUTH
+   FIX: One function, sets uploadedImg globally,
+        updates preview, forces redraw
+═══════════════════════════════════════════════════ */
+function setUploadedImage(img){
+  uploadedImg = img;                    // The ONE variable used by rendering engine
+  const prev=document.getElementById('preview-img');
+  prev.src=img.src;prev.style.display='block';
+  // Force redraw of current layer with new image
+  goToLayer(currentLayer, false);
+}
 
-  // 2. Show preview immediately
+/* ═══════════════════════════════════════════════════
+   resetForNewImage
+═══════════════════════════════════════════════════ */
+function resetForNewImage(){
+  stopPlay();particles=[];kernelAnim.active=false;
+  window.realPredictions=null;window.realExplanation=null;
+  const eb=document.getElementById('explain-box');if(eb)eb.innerHTML='';
+  const pb=document.getElementById('prob-bars');if(pb)pb.innerHTML='';
+}
+
+/* ═══════════════════════════════════════════════════
+   sendToFlask — with 3× auto-retry for 502 (Render cold start)
+   FIX: Uses BACKEND_URL variable (correct URL, not hardcoded)
+        Correct retry with toast feedback
+═══════════════════════════════════════════════════ */
+async function sendToFlask(file, attempt=0){
+  const s=document.getElementById('proc-status');
+  s.style.display='block';
+  s.textContent=attempt===0?'ANALYZING IMAGE...':`SERVER WAKING (${attempt}/3)...`;
+  const fd=new FormData();fd.append('image',file);
+  try{
+    const res=await fetch(`${BACKEND_URL}/predict`,{method:'POST',body:fd});
+    if(res.status===502&&attempt<3){
+      toast(`Server waking — retry ${attempt+1}/3 in 8s...`,'info');
+      setTimeout(()=>sendToFlask(file,attempt+1),8000);return;
+    }
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
+    // SUCCESS
+    window.realPredictions=data.predictions;
+    window.realExplanation=`<strong>MobileNetV2:</strong> ${data.explanation}`;
+    s.style.display='none';
+    setBackend(true);
+    const top=data.predictions[0];
+    toast(`${top.label.replace(/_/g,' ').toUpperCase()}  (${(top.probability*100).toFixed(1)}%)`,'ok');
+    // If already on softmax layer, refresh bars immediately
+    if(LAYERS[currentLayer]?.type==='softmax')renderProbabilities();
+  }catch(err){
+    s.style.display='none';
+    if(attempt<3){
+      toast(`Retry ${attempt+1}/3...`,'info');
+      setTimeout(()=>sendToFlask(file,attempt+1),8000);return;
+    }
+    toast('Backend error: '+err.message,'err');setBackend(false);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   FILE INPUT HANDLER
+═══════════════════════════════════════════════════ */
+document.getElementById('file-input').addEventListener('change',function(e){
+  const file=e.target.files[0];if(!file)return;
+  if(file.size>10*1024*1024){toast('Max 10MB','err');return;}
+  resetForNewImage();
   const reader=new FileReader();
   reader.onload=ev=>{
     const img=new Image();
-    img.onload=()=>{
-      uploadedImg=img;
-      document.getElementById('preview-img').src=ev.target.result;
-      document.getElementById('preview-img').style.display='block';
-      if (typeof updateCenterPanels === 'function') updateCenterPanels();
-      if (typeof updateInspector === 'function') updateInspector();
-      toast('Image loaded — feature maps are simulated client-side','info');
-    };
+    img.onload=()=>{setUploadedImage(img);toast('Image loaded','info');sendToFlask(file);};
     img.src=ev.target.result;
   };
-  reader.readAsDataURL(file);
-
-  // 3. Send to Flask backend (USING THE NEW RETRY LOGIC)
-  document.getElementById('proc-status').style.display='block';
-  const fd=new FormData();fd.append('image',file);
-  try{
-    // 👉 CLEAN FIX: Use the retry function instead of a single fragile fetch!
-    const data = await sendToFlaskWithRetry(fd);
-    
-    if(data.error)throw new Error(data.error);
-    window.realPredictions=data.predictions;
-    window.realExplanation=`<strong>MobileNetV2:</strong> ${data.explanation}`;
-    
-    document.getElementById('proc-status').style.display='none';
-    const top=data.predictions[0];
-    toast(`→ ${top.label.replace(/_/g,' ').toUpperCase()}  (${(top.probability*100).toFixed(1)}%)`,'ok');
-    if (typeof setBackend === 'function') setBackend(true);
-    
-    if(typeof LAYERS !== 'undefined' && LAYERS[currentLayer]?.type==='softmax'){
-        if (typeof renderProbabilities === 'function') renderProbabilities();
-    }
-  }catch(err){
-    document.getElementById('proc-status').style.display='none';
-    const offline=err.message.includes('fetch')||err.message.includes('Failed')||err.message.includes('Network')||err.message.includes('too long');
-    toast(offline?'Backend is waking up, please try again.':'Backend error: '+err.message,'err');
-    if (typeof setBackend === 'function') setBackend(false);
-  }
-  this.value=''; // allow re-uploading same file
+  reader.readAsDataURL(file);this.value='';
 });
 
-/* ════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
+   SAMPLE LOADER
+   FIX: Uses blob URL to avoid canvas taint
+        Calls setUploadedImage (single source of truth)
+        Correct URLs (dog/cat not dog/blur)
+═══════════════════════════════════════════════════ */
+const SAMPLES={
+  dog:'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=80',
+  cat:'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&q=80'
+};
+
+function loadSample(type){
+  const url=SAMPLES[type];if(!url)return;
+  resetForNewImage();
+  toast(`Loading ${type} sample...`,'info');
+  fetch(url)
+    .then(r=>{if(!r.ok)throw new Error('fetch failed');return r.blob();})
+    .then(blob=>{
+      const localUrl=URL.createObjectURL(blob);
+      const img=new Image();
+      img.onload=async()=>{
+        setUploadedImage(img);
+        const file=new File([blob],type+'.jpg',{type:'image/jpeg'});
+        await sendToFlask(file);
+      };
+      img.onerror=()=>toast('Failed to load sample image','err');
+      img.src=localUrl;
+    })
+    .catch(err=>{
+      toast('Could not fetch sample — check network','err');
+      console.error('Sample load error:',err);
+    });
+}
+
+/* ═══════════════════════════════════════════════════
    BACKEND STATUS
-════════════════════════════════════════════════ */
+   FIX: Uses /health endpoint (lightweight), not /predict
+═══════════════════════════════════════════════════ */
 function setBackend(online){
-  const badge=document.getElementById('backend-badge');
-  badge.className='backend-badge '+(online?'live':'dead');
+  const b=document.getElementById('backend-badge');
+  b.className='backend-badge '+(online?'live':'dead');
   document.getElementById('backend-lbl').textContent=online?'BACKEND LIVE':'BACKEND OFFLINE';
 }
 async function pingBackend(){
   try{
-    // Use a lightweight HEAD-like request; Flask doesn't have /health so we just check if predict is reachable
-    const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),2500);
-    const r=await fetch('https://cnn-visualizer-ffaj.onrender.com/predict',{method:'POST',body:new FormData(),signal:ctrl.signal});
-    clearTimeout(t);setBackend(true);
+    const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),4000);
+    const r=await fetch(`${BACKEND_URL}/health`,{signal:ctrl.signal});
+    clearTimeout(t);setBackend(r.ok);
   }catch{setBackend(false);}
 }
 pingBackend();setInterval(pingBackend,15000);
 
-/* ════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    PLAYBACK CONTROLS
-════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════ */
 function stopPlay(){
   if(!isPlaying)return;
   clearInterval(playTimer);isPlaying=false;
   document.getElementById('btn-play').textContent='▶ PLAY';
   document.getElementById('btn-play').className='btn btn-orange';
 }
-
 document.getElementById('btn-play').onclick=function(){
   if(isPlaying){stopPlay();return;}
   isPlaying=true;this.textContent='⏸ PAUSE';this.className='btn btn-cyan';
   const spd=parseInt(document.getElementById('speed-sel').value);
-  playTimer=setInterval(()=>{
-    if(currentLayer>=LAYERS.length-1){stopPlay();return;}
-    goToLayer(currentLayer+1);
-  },spd);
+  playTimer=setInterval(()=>{if(currentLayer>=LAYERS.length-1){stopPlay();return;}goToLayer(currentLayer+1);},spd);
 };
 document.getElementById('btn-next').onclick=()=>{stopPlay();if(currentLayer<LAYERS.length-1)goToLayer(currentLayer+1);};
 document.getElementById('btn-prev').onclick=()=>{stopPlay();if(currentLayer>0)goToLayer(currentLayer-1);};
-document.getElementById('btn-reset').onclick = () => {
-  // 1. Stop animations
-  if (typeof stopPlay === 'function') stopPlay();
-  particles = [];
-  if (typeof kernelAnim !== 'undefined') kernelAnim.active = false;
-  
-  // 2. Clear Image Data & Hide Preview
-  uploadedImageData = null;
-  const preview = document.getElementById('preview-img');
-  if (preview) {
-      preview.src = '';
-      preview.style.display = 'none';
-  }
-  
-  // 3. Clear Probabilities and Explanation text
-  const probBars = document.getElementById('prob-bars');
-  if (probBars) probBars.innerHTML = '';
-  
-  // 4. Reset the network to Layer 0
-  goToLayer(0, false);
+document.getElementById('btn-reset').onclick=()=>{
+  stopPlay();particles=[];kernelAnim.active=false;
+  uploadedImg=null;window.realPredictions=null;window.realExplanation=null;
+  const p=document.getElementById('preview-img');if(p){p.src='';p.style.display='none';}
+  const pb=document.getElementById('prob-bars');if(pb)pb.innerHTML='';
+  const eb=document.getElementById('explain-box');if(eb)eb.innerHTML='';
+  goToLayer(0,false);
 };
 document.getElementById('speed-sel').onchange=function(){
-  if(!isPlaying)return;
-  clearInterval(playTimer);
+  if(!isPlaying)return;clearInterval(playTimer);
   const spd=parseInt(this.value);
-  playTimer=setInterval(()=>{
-    if(currentLayer>=LAYERS.length-1){stopPlay();return;}
-    goToLayer(currentLayer+1);
-  },spd);
+  playTimer=setInterval(()=>{if(currentLayer>=LAYERS.length-1){stopPlay();return;}goToLayer(currentLayer+1);},spd);
 };
 document.addEventListener('keydown',e=>{
   if(e.key==='ArrowRight')document.getElementById('btn-next').click();
@@ -1035,194 +901,20 @@ document.addEventListener('keydown',e=>{
   if(e.key===' '){e.preventDefault();document.getElementById('btn-play').click();}
 });
 
-/* ════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    TOAST
-════════════════════════════════════════════════ */
-function toast(msg,type='info'){
-  const el=document.getElementById('toast');
-  el.textContent=msg;el.className=`toast ${type} show`;
-  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3800);
-}
+═══════════════════════════════════════════════════ */
+function toast(msg,type='info'){const el=document.getElementById('toast');el.textContent=msg;el.className=`toast ${type} show`;clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3800);}
 
-/* ════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    MODAL
-════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════ */
 document.getElementById('btn-close-modal').onclick=()=>document.getElementById('modal-overlay').classList.add('hidden');
 
-/* ════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    INIT
-════════════════════════════════════════════════ */
-buildLayerList();
-buildTimeline();
-resizeCanvas();
-goToLayer(0,false);
-drawNetwork();
-/* ─────────────────────────────────────────────────────────
-   UNIVERSAL RESET FOR NEW IMAGES
-───────────────────────────────────────────────────────── */
-function resetForNewImage() {
-    // 1. Stop the "Play" animation if it is currently running
-    if (typeof stopPlay === 'function') stopPlay();
-    if (typeof particles !== 'undefined') particles = [];
-    if (typeof kernelAnim !== 'undefined' && kernelAnim) kernelAnim.active = false;
-
-    // 2. Clear old predictions and UI text
-    window.realPredictions = null;
-    window.realExplanation = null;
-
-    const explainBox = document.getElementById('explain-box');
-    if (explainBox) explainBox.innerHTML = '';
-
-    const probBars = document.getElementById('prob-bars');
-    if (probBars) probBars.innerHTML = '';
-
-    const fmapArea = document.getElementById('fmap-thumb-area');
-    if (fmapArea) fmapArea.innerHTML = '<span style="font-size:9px;color:var(--dim)">Rendering...</span>';
-
-    // 3. Snap the timeline back to Layer 0 (Input)
-    if (typeof goToLayer === 'function') goToLayer(0, false);
-}
-/* ─────────────────────────────────────────────────────────
-   CLEAN CODE: Auto-Retry for Render's Cold Start
-───────────────────────────────────────────────────────── */
-/* ─────────────────────────────────────────────────────────
-   HEAVY-DUTY RETRY: Bypasses Render's Fake CORS Timeouts
-───────────────────────────────────────────────────────── */
-async function sendToFlaskWithRetry(formData, retries = 12) {
-    for (let i = 0; i < retries; i++) {
-        try {
-            // Make sure this is your exact API URL!
-            const res = await fetch("https://cnn-visualizer-api.onrender.com/predict", {
-                method: "POST",
-                body: formData
-            });
-            
-            if (res.ok) {
-                console.log("✅ Success! Backend is awake and responded.");
-                return await res.json();
-            }
-            
-            console.log(`[Attempt ${i + 1}/${retries}] Server waking up... (Status: ${res.status})`);
-            
-        } catch (err) {
-            // THIS catches the "Fake CORS" error!
-            // When Render is asleep, the browser blocks the connection and throws a TypeError.
-            console.warn(`[Attempt ${i + 1}/${retries}] Caught Fake CORS/Sleep Error. Waiting 5s for Python to boot...`);
-        }
-        
-        // Wait 5 seconds before knocking on the door again
-        if (i < retries - 1) {
-            await new Promise(resolve => setTimeout(resolve, 5000));
-        }
-    }
-    throw new Error('Backend took too long to wake up. Please hard refresh the page and try again.');
-}
-// INJECTION: Bulletproof Sample Button Logic (CORS Safe)
-function loadSample(type) {
-  // 👉 1. CALL THE RESET FUNCTION FIRST
-  if (typeof resetForNewImage === 'function') resetForNewImage();
-  
-  const samples = {
-    'dog': 'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=400',
-    'blur': 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&blur=10'
-  };
-  
-  // 1. Fetch the image as a raw Blob FIRST to bypass Canvas Taint
-  fetch(samples[type])
-    .then(response => response.blob())
-    .then(blob => {
-        // Create a safe, local URL that the Canvas is allowed to read
-        const localUrl = URL.createObjectURL(blob);
-        
-        const img = new Image();
-        img.onload = async function() {
-            // 2. Sync State Immediately
-            uploadedImg = img;          
-            uploadedImageData = img;  
-
-            // Force the feature map container to clear itself before redrawing
-            const fmapArea = document.getElementById('fmap-thumb-area');
-            if (fmapArea) fmapArea.innerHTML = '<span style="font-size:9px;color:var(--dim)">Rendering...</span>';  
-
-            // 3. Update UI Preview
-            const preview = document.getElementById('preview-img');
-            if (preview) {
-                preview.src = img.src;
-                preview.style.display = 'block';
-            }
-
-            // 4. Force the engine to redraw with the new local image
-            setTimeout(() => {
-                if (typeof goToLayer === 'function') {
-                    goToLayer(typeof currentLayer !== 'undefined' ? currentLayer : 0, false);
-                }
-                if (typeof updateFeatureMaps === 'function') {
-                    updateFeatureMaps();
-                }
-            }, 50); 
-
-            // 5. Backend Call (USING THE NEW RETRY LOGIC)
-            try {
-                const file = new File([blob], "sample.jpg", { type: "image/jpeg" });
-                const formData = new FormData();
-                formData.append("image", file);
-
-                // 👉 THIS IS THE CLEAN FIX
-                const data = await sendToFlaskWithRetry(formData);
-                
-                window.realPredictions = data.predictions;
-                window.realExplanation = data.explanation;
-                
-                const explainBox = document.getElementById('explain-box');
-                if (explainBox && data.explanation) {
-                     explainBox.innerHTML = `<strong>AI Insight:</strong> ${data.explanation}`;
-                }
-
-                if (typeof LAYERS !== 'undefined' && LAYERS[currentLayer]?.type === 'softmax') {
-                    if (typeof renderProbabilities === 'function') renderProbabilities();
-                }
-
-            } catch (err) {
-                console.error("Backend failed:", err);
-            }
-        };
-        img.src = localUrl; // Feed the safe local URL to the image object
-    })
-    .catch(err => console.error("Failed to fetch sample image:", err));
-}
-/* ─────────────────────────────────────────────────────────
-   CLEAN CODE: Auto-Retry for Render's Cold Start
-───────────────────────────────────────────────────────── */
-async function sendToFlaskWithRetry(formData, retries = 3) {
-    for (let i = 0; i < retries; i++) {
-        try {
-            // Replace this URL with your actual Render URL!
-           // Inside sendToFlaskWithRetry:
-const res = await fetch("https://cnn-visualizer-api.onrender.com/predict", {
-    method: "POST",
-    body: formData
-});
-            if (res.ok) {
-                return await res.json();
-            }
-            
-            // If Render is asleep, it throws a 502. We catch it and wait.
-            if (res.status === 502) {
-                console.log(`Render is waking up... Retrying in 3 seconds (Attempt ${i + 1}/${retries})`);
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                continue; // Loop back and try again!
-            }
-            
-            // If it's a different error, stop trying
-            throw new Error('HTTP ' + res.status);
-            
-        } catch (err) {
-            if (i === retries - 1) throw err; // Only throw error if we are out of retries
-            await new Promise(resolve => setTimeout(resolve, 3000));
-        }
-    }
-    throw new Error('Backend took too long to wake up. Please refresh and try again.');
-}
+═══════════════════════════════════════════════════ */
+buildLayerList();buildTimeline();resizeCanvas();goToLayer(0,false);drawNetwork();
 </script>
 </body>
 </html>
