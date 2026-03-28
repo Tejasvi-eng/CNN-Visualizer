@@ -48,6 +48,8 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .backend-badge.live .backend-dot{background:var(--green);box-shadow:var(--ggreen);animation:pulse-dot 1.8s infinite;}
 .backend-badge.dead{border-color:rgba(255,51,85,0.35);color:var(--red);}
 .backend-badge.dead .backend-dot{background:var(--red);}
+.backend-badge.warming{border-color:rgba(255,215,0,0.35);color:var(--gold);}
+.backend-badge.warming .backend-dot{background:var(--gold);animation:pulse-dot 0.8s infinite;}
 @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.35}}
 
 /* LEFT PANEL */
@@ -788,9 +790,9 @@ async function sendToFlask(file, attempt=0){
   const fd=new FormData();fd.append('image',file);
   try{
     const res=await fetch(`${BACKEND_URL}/predict`,{method:'POST',body:fd});
-    if(res.status===502&&attempt<3){
-      toast(`Server waking — retry ${attempt+1}/3 in 8s...`,'info');
-      setTimeout(()=>sendToFlask(file,attempt+1),8000);return;
+    if(res.status===502&&attempt<5){
+      toast(`Server waking — retry ${attempt+1}/5...`,'info');
+      setTimeout(()=>sendToFlask(file,attempt+1),12000);return;
     }
     if(!res.ok)throw new Error('HTTP '+res.status);
     const data=await res.json();
@@ -810,9 +812,9 @@ async function sendToFlask(file, attempt=0){
     }
   }catch(err){
     s.style.display='none';
-    if(attempt<3){
-      toast(`Retry ${attempt+1}/3...`,'info');
-      setTimeout(()=>sendToFlask(file,attempt+1),8000);return;
+    if(attempt<5){
+      toast(`Retry ${attempt+1}/5...`,'info');
+      setTimeout(()=>sendToFlask(file,attempt+1),12000);return;
     }
     toast('Backend error: '+err.message,'err');setBackend(false);
   }
@@ -874,19 +876,76 @@ function loadSample(type){
    BACKEND STATUS
    FIX: Uses /health endpoint (lightweight), not /predict
 ═══════════════════════════════════════════════════ */
-function setBackend(online){
+function setBackend(online, warming=false){
   const b=document.getElementById('backend-badge');
-  b.className='backend-badge '+(online?'live':'dead');
-  document.getElementById('backend-lbl').textContent=online?'BACKEND LIVE':'BACKEND OFFLINE';
+  if(warming){
+    b.className='backend-badge warming';
+    document.getElementById('backend-lbl').textContent='WAKING UP...';
+  } else {
+    b.className='backend-badge '+(online?'live':'dead');
+    document.getElementById('backend-lbl').textContent=online?'BACKEND LIVE':'BACKEND OFFLINE';
+  }
 }
+
+/* ── WARM-UP SYSTEM ──────────────────────────────────────────────────────────
+   1. Ping immediately on page load
+   2. If offline, retry every 8s until alive (max 10 attempts = 80s window)
+   3. Once alive, keep-alive ping every 4 minutes to prevent sleep
+   4. Show a warming toast so user knows what's happening
+──────────────────────────────────────────────────────────────────────────── */
+let _warmInterval = null;
+let _warmAttempts = 0;
+let _keepAliveInterval = null;
+
 async function pingBackend(){
   try{
-    const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),4000);
+    const ctrl=new AbortController();
+    const t=setTimeout(()=>ctrl.abort(),6000);
     const r=await fetch(`${BACKEND_URL}/health`,{signal:ctrl.signal});
-    clearTimeout(t);setBackend(r.ok);
-  }catch{setBackend(false);}
+    clearTimeout(t);
+    if(r.ok){
+      setBackend(true);
+      // Stop warm-up retries now that we're live
+      if(_warmInterval){clearInterval(_warmInterval);_warmInterval=null;_warmAttempts=0;}
+      // Start keep-alive every 4 min so it never sleeps again
+      if(!_keepAliveInterval){
+        _keepAliveInterval=setInterval(()=>{
+          fetch(`${BACKEND_URL}/health`,{signal:AbortSignal.timeout(5000)}).catch(()=>{});
+        }, 4*60*1000);
+      }
+      return true;
+    } else {
+      setBackend(false); return false;
+    }
+  }catch{
+    setBackend(false); return false;
+  }
 }
-pingBackend();setInterval(pingBackend,15000);
+
+async function warmUpBackend(){
+  const alive = await pingBackend();
+  if(alive) return; // Already up, nothing to do
+  // Not alive — show toast and start retry loop
+  toast('Backend waking up — will be ready in ~30s','info');
+  setBackend(false, true); // Show golden 'WAKING UP...' badge
+  _warmAttempts = 0;
+  if(_warmInterval) clearInterval(_warmInterval);
+  _warmInterval = setInterval(async()=>{
+    _warmAttempts++;
+    const alive = await pingBackend();
+    if(alive){
+      toast('Backend is LIVE — ready to analyse!','ok');
+    } else if(_warmAttempts >= 10){
+      clearInterval(_warmInterval);_warmInterval=null;
+      toast('Backend slow to start — will retry when you upload','info');
+    }
+  }, 8000);
+}
+
+// Kick off immediately on page load
+warmUpBackend();
+// Fallback regular check every 20s in case keep-alive missed
+setInterval(pingBackend, 20000);
 
 /* ═══════════════════════════════════════════════════
    PLAYBACK CONTROLS
