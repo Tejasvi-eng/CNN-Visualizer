@@ -1,3 +1,9 @@
+"""
+CNN.VISUALIZER
+Author: Tejasvi
+GitHub: https://github.com/Tejasvi-eng/CNN-Visualizer
+Built: 2026
+"""
 import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
